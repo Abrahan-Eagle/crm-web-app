@@ -300,6 +300,29 @@ Los usuarios tienen **permisos granulares** que vienen en el JWT token de Auth0.
 - Verifica que `AUTH0_CONNECTION` en `environment.ts` sea correcto
 - Debe ser `Username-Password-Authentication` o el nombre de tu connection en Auth0
 
+**Error: "Callback URL mismatch" o "The provided redirect_uri is not in the list of allowed callback URLs"**
+- Este error ocurre cuando la URL de redirección no está configurada en Auth0
+- **Solución**:
+  1. Accede al Dashboard de Auth0: https://manage.auth0.com/
+  2. Ve a **Applications** → Selecciona tu aplicación (Client ID: `KOwgRAn7VY4kHAug7LwnIK0l3Ufek2og`)
+  3. Ve a la pestaña **Settings**
+  4. Busca la sección **Allowed Callback URLs**
+  5. Agrega las siguientes URLs (una por línea):
+     ```
+     http://localhost:4200
+     http://localhost:4200/
+     https://tu-dominio.com
+     https://tu-dominio.com/
+     ```
+  6. Si estás en desarrollo, agrega también:
+     ```
+     http://localhost:4200/**
+     ```
+  7. Click en **Save Changes**
+  8. Recarga la aplicación en el navegador
+
+**Nota**: La aplicación usa `window.location.origin` como `redirect_uri`, por lo que debe coincidir exactamente con una de las URLs permitidas en Auth0.
+
 ### 1.9 Comandos Útiles
 
 #### Ver logs del servidor

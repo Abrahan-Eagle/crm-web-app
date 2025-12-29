@@ -204,7 +204,103 @@ crm-web-app/
 └── README.md                     # Esta documentación
 ```
 
-### 1.8 Comandos Útiles
+### 1.8 Autenticación y Credenciales
+
+Esta aplicación utiliza **Auth0** para la autenticación de usuarios. No hay usuarios/contraseñas almacenados localmente.
+
+#### Configuración Actual de Auth0
+
+Según el archivo `environment.development.ts`, la aplicación está configurada con:
+
+- **Auth0 Domain**: `businessmarketfinders.us.auth0.com`
+- **Client ID**: `KOwgRAn7VY4kHAug7LwnIK0l3Ufek2og`
+- **Connection**: `Username-Password-Authentication`
+- **Backend API**: `https://crm-core-service.fly.dev/core-service`
+
+#### Cómo Obtener Credenciales de Acceso
+
+Hay **3 formas** de obtener credenciales para acceder a la aplicación:
+
+##### Opción 1: Dashboard de Auth0 (Recomendado)
+
+1. Accede al **Dashboard de Auth0**:
+   - URL: https://manage.auth0.com/
+   - Inicia sesión con las credenciales de administrador de Auth0
+
+2. Navega a **User Management → Users**
+
+3. Aquí puedes:
+   - **Ver usuarios existentes**: Ver la lista de todos los usuarios registrados
+   - **Crear nuevo usuario**: Click en "Create User" y completa el formulario
+   - **Resetear contraseña**: Selecciona un usuario y usa "Reset Password"
+
+4. Los usuarios creados aquí podrán iniciar sesión en la aplicación con:
+   - **Email**: El email que configuraste
+   - **Contraseña**: La contraseña que estableciste (o la que Auth0 envió por email)
+
+##### Opción 2: Crear Usuario desde la Aplicación
+
+Si ya tienes acceso a la aplicación con un usuario administrador:
+
+1. Inicia sesión en la aplicación
+2. Navega a **Users** (requiere permiso `LIST_USER`)
+3. Click en **Create User** (requiere permiso `CREATE_USER`)
+4. Completa el formulario:
+   - First name
+   - Last name
+   - Email
+   - Password (mínimo 8 caracteres)
+   - Tenants (selecciona al menos uno)
+   - Roles (selecciona al menos uno)
+5. Click en **Save**
+
+**Nota**: Este método crea el usuario en el backend, pero también necesitas crear el usuario en Auth0 con las mismas credenciales para que pueda autenticarse.
+
+##### Opción 3: Contactar al Administrador
+
+Si no tienes acceso al Dashboard de Auth0:
+
+1. Contacta al administrador del sistema o al equipo de desarrollo
+2. Solicita que te creen un usuario con:
+   - Tu email
+   - Contraseña temporal (que deberías cambiar al primer inicio de sesión)
+   - Los permisos/roles necesarios para tu trabajo
+
+#### Flujo de Autenticación
+
+1. Usuario accede a la aplicación → Redirige a Auth0 si no está autenticado
+2. Auth0 muestra formulario de login
+3. Usuario ingresa email y contraseña
+4. Auth0 valida credenciales
+5. Si es válido, Auth0 redirige de vuelta a la aplicación con un token JWT
+6. La aplicación decodifica el token y carga los permisos del usuario
+7. Usuario puede acceder a las funcionalidades según sus permisos
+
+#### Permisos y Roles
+
+Los usuarios tienen **permisos granulares** que vienen en el JWT token de Auth0. Los permisos determinan qué puede hacer cada usuario:
+
+- **"own" permissions**: Ver solo recursos propios (ej: `LIST_OWN_APPLICATIONS`)
+- **"all" permissions**: Ver todos los recursos (ej: `LIST_APPLICATIONS`)
+- **CRUD permissions**: CREATE, READ, UPDATE, DELETE por entidad
+- **Action permissions**: SEND_APPLICATION, TRANSFER_APPLICATION, etc.
+
+#### Solución de Problemas de Autenticación
+
+**Error: "Invalid credentials"**
+- Verifica que el email y contraseña sean correctos
+- Asegúrate de que el usuario existe en Auth0
+- Intenta resetear la contraseña desde Auth0
+
+**Error: "Access denied" o "Insufficient permissions"**
+- El usuario no tiene los permisos necesarios
+- Contacta al administrador para asignar los permisos correctos
+
+**Error: "Connection not found"**
+- Verifica que `AUTH0_CONNECTION` en `environment.ts` sea correcto
+- Debe ser `Username-Password-Authentication` o el nombre de tu connection en Auth0
+
+### 1.9 Comandos Útiles
 
 #### Ver logs del servidor
 

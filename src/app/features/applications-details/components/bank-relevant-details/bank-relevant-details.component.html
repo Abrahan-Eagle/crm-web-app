@@ -1,0 +1,85 @@
+<div class="*:mb-4">
+  <div class="flex items-center gap-4">
+    <div class="bg-blue-950 text-white rounded-lg flex items-center justify-center size-10">
+      {{ bank.name | initials }}
+    </div>
+    <div class="truncate">
+      <p class="font-semibold text-gray-900 truncate">
+        {{ bank.name }}
+      </p>
+    </div>
+  </div>
+  <div>
+    <h3 class="text-gray-700 font-bold mb-2">Classifications</h3>
+    <div class="space-x-4">
+      {{ bank.constraints?.classifications }}
+    </div>
+  </div>
+
+  <div>
+    <h3 class="text-gray-700 font-bold mb-2">Territories</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+      @for (item of bank.constraints?.territories; track $index) {
+        <!-- {{ config.territories()[item] }} -->
+      }
+    </div>
+  </div>
+
+  <div>
+    <h3 class="text-gray-700 font-bold mb-2">Minimum Deposits</h3>
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <h4 class="text-gray-400">Minimun Amount</h4>
+        {{ bank.constraints?.deposits?.minimum_amount | currency }}
+      </div>
+      <div>
+        <h4 class="text-gray-400">Minimum Transactions</h4>
+        {{ bank.constraints?.deposits?.minimum_transactions }}
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <h3 class="text-gray-700 font-bold mb-2">Restrictions</h3>
+    <div class="grid md:grid-cols-2 grid-cols-1 gap-3 mb-4">
+      <div>
+        <h4 class="text-gray-400">Loan limit</h4>
+        {{ bank.constraints?.loan_limit | currency }}
+      </div>
+      <div>
+        <h4 class="text-gray-400">Minimum months in business</h4>
+        {{ bank.constraints?.minimum_months_in_business }}
+      </div>
+      <div>
+        <h4 class="text-gray-400">Minimum daily balance</h4>
+        {{ bank.constraints?.minimum_daily_balance | currency }}
+      </div>
+      <div>
+        <h4 class="text-gray-400">Maximum negative days</h4>
+        {{ bank.constraints?.maximum_negative_days }}
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <h3 class="text-gray-700 font-bold mb-2">Restricted Industries</h3>
+    <div class="flex flex-wrap gap-2">
+      @for (item of bank.constraints?.allowed_industries; track $index) {
+        <span class="px-2 py-1 bg-gray-400 rounded">
+          {{ item.name }}
+        </span>
+      }
+    </div>
+  </div>
+
+  <div>
+    <h3 class="text-gray-700 font-bold mb-2">Accepted documents</h3>
+    <div class="flex flex-wrap gap-2">
+      @for (item of bank.constraints?.supported_ids; track $index) {
+        <span class="px-2 py-1 bg-gray-400 rounded">
+          {{ config.supportedIDs()[item] }}
+        </span>
+      }
+    </div>
+  </div>
+</div>

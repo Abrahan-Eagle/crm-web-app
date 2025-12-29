@@ -1,0 +1,185 @@
+<div class="p-7">
+  <div class="rounded-2xl shadow bg-white p-6">
+    <nav class="flex gap-4 justify-between items-center flex-wrap md:flex-row flex-col">
+      <!-- Search -->
+      <div class="bg-stone-100 w-full md:max-w-96 flex h-11 items-center rounded-2xl ps-4 gap-4">
+        <label
+          for="searchCompany"
+          class="relative size-4 shrink-0 cursor-pointer"
+          (click)="this.searchService.updateQuery(search)"
+          ><img ngSrc="/assets/icons/search.svg" alt="Search" fill
+        /></label>
+        <input
+          type="text"
+          [(ngModel)]="search"
+          id="searchCompany"
+          (keyup.enter)="this.searchService.updateQuery(search)"
+          placeholder="search"
+          class="bg-transparent grow h-full px-2"
+        />
+      </div>
+
+      @if (permissions.hasPermission(permission.CREATE_APPLICATION)) {
+        <div class="max-md:w-full">
+          <a
+            class="flex items-center gap-2 bg-secondary text-white px-4 py-2 rounded-lg"
+            routerLink="/companies/create"
+          >
+            <div class="relative size-5 shrink-0"><img ngSrc="/assets/icons/add.svg" alt="Create" fill /></div>
+            Create
+          </a>
+        </div>
+      }
+    </nav>
+
+    <hr class="my-4" />
+    <section>
+      <div class="relative overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="*:font-normal *:text-neutral-400 *:px-5 *:py-3">
+              <th scope="col">Name</th>
+              <th scope="col">Assigned To</th>
+              <th scope="col">Phones</th>
+              <th scope="col">Tax ID</th>
+              <th scope="col">Creation Date</th>
+              <th scope="col" class="text-end">Actions</th>
+            </tr>
+          </thead>
+          @if (loading()) {
+            <tbody>
+              <td colspan="100%">
+                <div class="text-center py-9">
+                  <div class="loader"></div>
+                </div>
+              </td>
+            </tbody>
+          } @else {
+            @if (companies() && companies()!.data!.length > 0) {
+              <tbody>
+                @for (company of companies()?.data; track company.id) {
+                  <tr
+                    class="bg-white border-b border-dashed border-neutral-200 *:px-6 *:py-4 *:whitespace-nowrap [&>th]:ps-0"
+                  >
+                    <th scope="row" [routerLink]="[company.id]" class="font-normal">
+                      <a [routerLink]="[company.id]">
+                        <div class="flex gap-4 items-center">
+                          <div
+                            class="size-10 bg-primary rounded-lg text-white flex items-center justify-center uppercase"
+                          >
+                            {{ company.name | initials }}
+                          </div>
+                          <div>
+                            <p class="font-bold">{{ company.name }}</p>
+
+                            <div class="flex items-center gap-2">
+                              <div class="relative size-5">
+                                <img
+                                  [ngSrc]="
+                                    'https://raw.githubusercontent.com/hampusborgos/country-flags/main/svg/' +
+                                    company.country_iso_code_2.toLowerCase() +
+                                    '.svg'
+                                  "
+                                  [alt]="company.country_iso_code_2"
+                                  fill
+                                />
+                              </div>
+
+                              <p>
+                                @if (company?.dba) {
+                                  <p>{{ company.dba }}</p>
+                                }
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </a>
+                    </th>
+                    <td>
+                      @if (company.created_by) {
+                        <div class="flex gap-4 items-center">
+                          <div
+                            class="size-10 bg-primary rounded-lg text-white flex items-center justify-center uppercase"
+                          >
+                            {{ company.created_by.first_name + ' ' + company.created_by.last_name | initials }}
+                          </div>
+                          <div>
+                            <p class="font-bold">
+                              {{ company.created_by.first_name }} {{ company.created_by.last_name }}
+                            </p>
+                          </div>
+                        </div>
+                      }
+                    </td>
+                    <td>
+                      @for (phone of company.phone_numbers; track $index) {
+                        <app-callable-phone
+                          [callInfo]="{
+                            entity_type: 'COMPANY',
+                            entity_id: company.id,
+                            phone_index: $index,
+                            phone_hint: phone | formatPhone,
+                          }"
+                        />
+                      }
+                    </td>
+                    <td>
+                      {{ company.tax_id }}
+                    </td>
+                    <td>{{ company.creation_date | customDate }} ({{ company.creation_date | yearsAgo }})</td>
+
+                    <td>
+                      @if (permissions.hasPermission(permission.TRANSFER_COMPANY)) {
+                        <button
+                          class="size-4 relative ml-auto block"
+                          (click)="selected.set(company.id); transferCompanyModal.open()"
+                        >
+                          <img src="/assets/icons/transfer.svg" alt="options" fill />
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            } @else {
+              @defer {
+                <tbody>
+                  <td colspan="100%">
+                    <app-companies-not-found />
+                  </td>
+                </tbody>
+              }
+            }
+          }
+        </table>
+      </div>
+
+      @defer {
+        @if (companies()?.pagination) {
+          <div class="mt-4">
+            <app-pagination />
+          </div>
+        }
+      }
+    </section>
+  </div>
+</div>
+
+<app-modal #transferCompanyModal>
+  @defer {
+    <div class="flex items-center justify-center">
+      <div class="bg-white w-full max-w-lg rounded-lg overflow-auto">
+        <header class="p-4 flex justify-between items-center border-b border-gray-300">
+          <h2 class="font-bold text-xl truncate">Assign company to user</h2>
+          <button (click)="transferCompanyModal.close()" class="shrink-0">
+            <img ngSrc="/assets/icons/close-icon.svg" width="14" height="18" alt="Close" class="opacity-50" />
+          </button>
+        </header>
+
+        @if (selected(); as company) {
+          <app-transfer-company [companyId]="company" (companyTransfered)="onSearch(); transferCompanyModal.close()" />
+        }
+      </div>
+    </div>
+  }
+</app-modal>

@@ -1,0 +1,58 @@
+<div
+  class="bg-white border border-neutral-300 flex items-center gap-4 p-2 rounded-lg cursor-pointer flex-col lg:flex-row justify-between"
+  (click)="fileVysor.open(); openVysor()"
+>
+  <div class="flex gap-4 items-center max-md:flex-wrap justify-between truncate w-full">
+    <div
+      class="rounded-md size-10 flex items-center justify-center shrink-0"
+      [ngClass]="type === 'pdf' ? 'bg-sky-600' : 'bg-orange-500'"
+    >
+      @if (type !== 'pdf') {
+        <img src="/assets/icons/file-image.svg" alt="Image" />
+      } @else {
+        <img src="/assets/icons/file-pdf.svg" alt="File" />
+      }
+    </div>
+    <div class="flex flex-col grow truncate">
+      <p class="font-semibold truncate">{{ name | decodeURI }}</p>
+      @if (docType) {
+        <p class="text-sm text-gray-500">{{ docType }}</p>
+      }
+      @if (transactions) {
+        <div class="flex items-center grow gap-2">
+          <img src="/assets/icons/application/list-icon.svg" alt="Transactions" class="size-4" />
+          <span class="text-sm text-gray-600">{{ transactions }}</span>
+        </div>
+      }
+    </div>
+  </div>
+  @if (negative_days || amount) {
+    <div class="shrink-0">
+      <p class="text-end text-green-600 font-semibold text-nowrap">
+        @if (amount) {
+          {{ amount | currency }}
+        }
+        @if (negative_days && amount) {
+          /
+        }
+        @if (negative_days) {
+          <span class="text-red-500">{{ negative_days }}</span>
+        }
+      </p>
+    </div>
+  }
+</div>
+
+<app-modal #fileVysor (closed)="showFile.set(false)">
+  @if (showFile()) {
+    <div class="flex gap-2 items-center justify-between">
+      @if (permissions.hasPermission(permission.DOWNLOAD_FILES)) {
+        <a [href]="source" target="_blank" class="bg-secondary text-white px-2 py-1 rounded-md">Download</a>
+      }
+      <button (click)="fileVysor.close()" class="size-6 block bg-secondary text-white rounded-md">X</button>
+    </div>
+    @defer {
+      <app-remote-file-vysor [type]="type" [source]="source" />
+    }
+  }
+</app-modal>

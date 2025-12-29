@@ -1,0 +1,47 @@
+@if (totalNotesCount() > 0) {
+  <div class="mt-5 mb-4">
+    <span class="block text-lg font-semibold mb-2">Company Notes</span>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      @for (note of application()!.company.notes; track $index) {
+        <app-note
+          [note]="note"
+          [entityId]="application()!.company.id"
+          entityType="company"
+          (deleted)="removeCompanyNote(note.id)"
+        />
+      }
+    </div>
+  </div>
+
+  @for (member of application()!.company.members; track $index) {
+    @if (member.contact.notes!.length > 0) {
+      <h3 class="text-sm mb-2">{{ member.contact.first_name + ' ' + member.contact.last_name }}</h3>
+    }
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      @for (note of member.contact.notes!; track $index) {
+        <div class="mb-4">
+          <app-note
+            [note]="note"
+            [entityId]="member.contact.id!"
+            entityType="contact"
+            (deleted)="removeNoteContact(note.id)"
+          />
+        </div>
+      }
+    </div>
+  }
+} @else {
+  <div class="text-center py-4 max-w-2xl mx-auto">
+    <div class="py-4 rounded-xl">
+      <img
+        ngSrc="/assets/icons/contact/no-contacts-found.svg"
+        alt="Nothing found"
+        width="160"
+        height="160"
+        priority
+        class="mx-auto"
+      />
+    </div>
+    <h3 class="text-2xl font-bold">No notes have been added</h3>
+  </div>
+}

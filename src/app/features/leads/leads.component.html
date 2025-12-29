@@ -1,0 +1,141 @@
+<div class="p-7">
+  <div class="rounded-2xl shadow bg-white p-6">
+    <nav class="flex gap-4 justify-between items-center flex-wrap md:flex-row flex-col">
+      <!-- Search -->
+      <div class="bg-stone-100 w-full md:max-w-96 flex h-11 items-center rounded-2xl ps-4 gap-4">
+        <label for="searchLead" class="relative size-4 shrink-0 cursor-pointer" (click)="updateSearch($event)">
+          <img ngSrc="/assets/icons/search.svg" alt="Search" fill />
+        </label>
+        <input
+          type="text"
+          id="searchLead"
+          (keyup.enter)="updateSearch($event)"
+          placeholder="search"
+          class="bg-transparent grow h-full px-2"
+        />
+      </div>
+
+      <!-- Actions -->
+      <div class="flex gap-4 md:flex-row flex-col max-md:w-full">
+        @if (permissions.hasPermission(permission.CREATE_LEAD)) {
+          <button class="flex items-center gap-2 bg-secondary text-white px-4 py-2 rounded-lg" routerLink="create">
+            <div class="relative size-5 shrink-0"><img ngSrc="/assets/icons/add.svg" alt="Create" fill /></div>
+            Create
+          </button>
+        }
+      </div>
+    </nav>
+    <hr class="my-4" />
+    <section>
+      <div class="relative overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="*:font-normal *:text-neutral-400 *:px-6 *:py-3">
+              <th scope="col">Name</th>
+              <th scope="col">Created By</th>
+              <th scope="col">Assigned To</th>
+              <th scope="col">Prospects</th>
+              <th scope="col">Created at</th>
+              <th scope="col" class="text-end">Actions</th>
+            </tr>
+          </thead>
+          @if (loading()) {
+            <tbody>
+              <td colspan="100%">
+                <div class="text-center py-9">
+                  <div class="loader"></div>
+                </div>
+              </td>
+            </tbody>
+          } @else {
+            @if (groups() && groups()!.data!.length > 0) {
+              <tbody>
+                @for (group of groups()?.data; track group.id) {
+                  <tr
+                    class="bg-white border-b border-dashed border-neutral-200 *:px-6 *:py-4 *:whitespace-nowrap [&>th]:ps-0"
+                  >
+                    <th scope="row" [routerLink]="[group.id]" class="font-normal">
+                      <a [routerLink]="[group.id]">
+                        {{ group.name }}
+                      </a>
+                    </th>
+                    <td>
+                      <div class="flex gap-4 items-center">
+                        <div
+                          class="size-10 bg-primary rounded-lg text-white flex items-center justify-center uppercase"
+                        >
+                          {{ group.created_by.first_name + ' ' + group.created_by.last_name | initials }}
+                        </div>
+                        <div>
+                          <p class="font-bold">{{ group.created_by.first_name }} {{ group.created_by.last_name }}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="flex gap-4 items-center">
+                        <div
+                          class="size-10 bg-primary rounded-lg text-white flex items-center justify-center uppercase"
+                        >
+                          {{ group.assigned_to.first_name + ' ' + group.assigned_to.last_name | initials }}
+                        </div>
+                        <div>
+                          <p class="font-bold">{{ group.assigned_to.first_name }} {{ group.assigned_to.last_name }}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{{ group.prospects | number }}</td>
+                    <td>{{ group.created_at | customDate }}</td>
+                    <td>
+                      @if (permissions.hasPermission(permission.TRANSFER_LEAD)) {
+                        <button
+                          class="size-4 relative ml-auto block"
+                          (click)="selected.set(group); transferLead.open()"
+                        >
+                          <img ngSrc="/assets/icons/transfer.svg" alt="options" fill />
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            } @else {
+              @defer {
+                <tbody>
+                  <td colspan="100%">
+                    <app-leads-not-found />
+                  </td>
+                </tbody>
+              }
+            }
+          }
+        </table>
+      </div>
+
+      @defer {
+        @if (groups()?.pagination) {
+          <div class="mt-4">
+            <app-pagination />
+          </div>
+        }
+      }
+    </section>
+  </div>
+</div>
+
+<app-modal #transferLead [backgroundClose]="true">
+  @defer {
+    <div class="flex items-center justify-center">
+      <div class="bg-white w-full max-w-lg rounded-lg overflow-auto">
+        <header class="p-4 flex justify-between items-center border-b border-gray-300">
+          <h2 class="font-bold text-xl truncate">Assign lead to user</h2>
+          <button (click)="transferLead.close()" class="shrink-0">
+            <img ngSrc="/assets/icons/close-icon.svg" width="14" height="18" alt="Close" class="opacity-50" />
+          </button>
+        </header>
+        @if (selected()) {
+          <app-transfer-lead-property [leadId]="selected()!.id!" (leadTransfered)="onSearch(); transferLead.close()" />
+        }
+      </div>
+    </div>
+  }
+</app-modal>

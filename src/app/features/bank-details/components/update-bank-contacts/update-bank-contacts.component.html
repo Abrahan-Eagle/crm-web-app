@@ -1,0 +1,108 @@
+<div class="relative w-full h-100">
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+      <div>
+        <app-custom-input label="Bank name" formControlName="name" />
+      </div>
+      <div>
+        <app-custom-input label="manager" formControlName="manager" />
+      </div>
+    </div>
+    @if (permissions.hasPermission(permission.READ_BANK_TYPE)) {
+      <app-custom-select
+        [options]="['lender', 'broker']"
+        [labels]="['Lender', 'Broker']"
+        formControlName="bank_type"
+        placeholder="Select Bank Type"
+      />
+    }
+    <div formArrayName="contacts">
+      @for (contact of form.controls.contacts.controls; track $index; let parent = $index) {
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-10" [formGroup]="contact">
+          <div>
+            <app-custom-input label="First name" formControlName="first_name" />
+          </div>
+          <div>
+            <app-custom-input label="Last name" formControlName="last_name" />
+          </div>
+          <div formArrayName="emails" class="col-span-2">
+            @for (control of contact.controls.emails.controls; track $index) {
+              <div [formGroup]="control" class="mb-5">
+                <div class="flex gap-2">
+                  <app-custom-input
+                    type="email"
+                    label="Email"
+                    formControlName="email"
+                    class="grow"
+                    [id]="'email-' + $index"
+                  />
+                  @if (!$first) {
+                    <button (click)="removeEmail(parent, $index)" type="button">
+                      <img ngSrc="/assets/icons/trash-icon.svg" width="14" height="16" alt="Delete" />
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+            <button
+              type="button"
+              (click)="addEmail(parent)"
+              class="px-2 text-sky-600 flex items-center justify-center border border-sky-600 rounded-md text-sm"
+            >
+              Add email
+            </button>
+          </div>
+          <div formArrayName="phones" class="col-span-2">
+            @for (control of contact.controls.phones.controls; track $index) {
+              <div [formGroup]="control" class="mb-5">
+                <div class="flex gap-2">
+                  <app-phone-input formControlName="phone" class="grow" />
+                  @if (!$first) {
+                    <button (click)="removePhone(parent, $index)" type="button">
+                      <img ngSrc="/assets/icons/trash-icon.svg" width="14" height="16" alt="Delete" />
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+            <div class="flex gap-2">
+              <button
+                type="button"
+                (click)="addPhone(parent)"
+                class="px-2 text-sky-600 flex items-center justify-center border border-sky-600 rounded-md text-sm"
+              >
+                Add phone
+              </button>
+              @if (!$first) {
+                <button
+                  type="button"
+                  (click)="removeContact(parent)"
+                  class="px-2 text-sky-600 flex items-center justify-center border border-sky-600 rounded-md text-sm"
+                >
+                  Remove contact
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <hr class="my-6" />
+      }
+
+      <button
+        type="button"
+        (click)="addContact()"
+        class="px-2 text-white flex items-center justify-center bg-sky-600 rounded-md"
+      >
+        Add contact
+      </button>
+    </div>
+    <div class="mt-10 max-md:w-full text-end">
+      @if (!loading()) {
+        <button class="bg-secondary px-4 py-2 rounded-lg text-white" type="submit">Save</button>
+      } @else {
+        <div class="loader"></div>
+      }
+    </div>
+  </form>
+</div>

@@ -1,0 +1,19 @@
+{
+  "data": [
+    {
+      "id": "674f638f8f4985ddfbe604bd",
+      "company": {
+        "id": "66f2d7627b7315c9dceb072a",
+        "name": "THE GREEN DISTRIBUTION",
+        "dba": "SCF"
+      },
+      "offer": {
+        "id": "673f3a0c55724721e9c791b4",
+        "purchased_amount": 15000,
+        "payment_plan": "DAILY",
+        "status": "ACCEPTED",
+        "created_at": "2024-11-21T13:47:58.101Z"
+      }
+    }
+  ]
+}

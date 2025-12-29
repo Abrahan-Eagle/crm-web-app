@@ -1,0 +1,162 @@
+<section
+  class="flex flex-col justify-center items-center bg-gray-100 border border-dashed border-neutral-500 rounded-lg hover:bg-gray-200 size-60"
+>
+  <button
+    type="button"
+    (click)="addMemberModal.open()"
+    class="flex flex-col items-center justify-center grow h-full w-full"
+  >
+    <img src="assets\icons\add.svg" alt="Add" class="size-10 filter invert-[100%]" />
+    <span class="text-black">Add member</span>
+  </button>
+</section>
+
+<!-- add member -->
+<app-modal #addMemberModal>
+  <div class="bg-white w-full rounded-lg overflow-auto max-h-full">
+    <header class="p-4 flex justify-between items-center border border-b border-gray-300">
+      <h2 class="font-bold text-xl truncate">Add member</h2>
+      <button (click)="addMemberModal.close()" class="shrink-0">
+        <img ngSrc="/assets/icons/close-icon.svg" width="14" height="18" alt="close" class="opacity-50" />
+      </button>
+    </header>
+    <section class="flex flex-col md:flex-row justify-center p-4 gap-4">
+      <button
+        (click)="createContactModal.open()"
+        class="flex flex-col items-center bg-white p-6 rounded-lg border border-gray-300 w-full gap-4"
+      >
+        <div class="relative">
+          <div class="size-16 bg-red-600 rounded-full flex items-center justify-center">
+            <img src="assets/icons/menu_contacts.svg" alt="contact" class="size-8" />
+          </div>
+          <div class="absolute -bottom-1 -right-1 bg-white rounded-full p-1 border border-gray-300">
+            <img src="assets/icons/add.svg" alt="Add" class="size-4 filter invert-[100%]" />
+          </div>
+        </div>
+        <p class="text-gray-800">New contact</p>
+      </button>
+      <button
+        (click)="searchContactModal.open()"
+        class="flex flex-col items-center bg-white p-6 rounded-lg border border-gray-300 w-full gap-4"
+      >
+        <div class="relative">
+          <div class="size-16 bg-blue-800 rounded-full flex items-center justify-center">
+            <img src="assets/icons/contact.svg" alt="contact" class="size-8 filter invert-[100%]" />
+          </div>
+          <div class="absolute -bottom-1 -right-1 bg-white rounded-full p-1 border border-gray-300">
+            <img src="assets/icons/add.svg" alt="Add" class="size-4 filter invert-[100%]" />
+          </div>
+        </div>
+        <p class="text-gray-800">Existing contact</p>
+      </button>
+    </section>
+  </div>
+</app-modal>
+
+<!-- Create contact -->
+<app-modal #createContactModal>
+  @defer {
+    <div class="h-full flex items-center">
+      <div class="bg-white w-full rounded-lg overflow-auto max-h-full">
+        <header class="p-4 flex justify-between items-center border border-b border-gray-300">
+          <h2 class="font-bold text-xl truncate">New Contact</h2>
+          <button (click)="createContactModal.close()" class="shrink-0">
+            <img ngSrc="/assets/icons/close-icon.svg" width="14" height="18" alt="close" class="opacity-50" />
+          </button>
+        </header>
+        <section class="p-4">
+          <app-create-contact
+            [shouldEmit]="true"
+            (contactCreated)="createContactModal.close()"
+            (contactCreated)="form.controls.contact.patchValue($event)"
+            (contactCreated)="memberFormModal.open()"
+          />
+        </section>
+      </div>
+    </div>
+  }
+</app-modal>
+
+<!-- Search -->
+<app-modal #searchContactModal [backgroundClose]="true">
+  @defer {
+    <div class="flex items-center justify-center">
+      <div class="bg-white w-full max-w-lg rounded-lg overflow-auto">
+        <header class="p-4 flex justify-between items-center border-b border-gray-300">
+          <h2 class="font-bold text-xl truncate">Search</h2>
+          <button (click)="searchContactModal.close()" class="shrink-0">
+            <img ngSrc="/assets/icons/close-icon.svg" width="14" height="18" alt="Close" class="opacity-50" />
+          </button>
+        </header>
+        <app-member-form-search-contact
+          (contactSelected)="form.controls.contact.patchValue($event)"
+          (contactSelected)="searchContactModal.close()"
+          (contactSelected)="memberFormModal.open()"
+        />
+      </div>
+    </div>
+  }
+</app-modal>
+
+<!-- Member Form -->
+<app-modal #memberFormModal (closed)="form.reset()">
+  @defer {
+    <div class="bg-white w-full max-w-screen-sm rounded-lg overflow-auto max-h-full mx-auto">
+      <header class="p-4 flex justify-between items-center border border-gray-300">
+        <h2 class="font-bold text-xl truncate">Add member</h2>
+        <button (click)="memberFormModal.close()" class="shrink-0">
+          <img ngSrc="/assets/icons/close-icon.svg" width="14" height="18" alt="close" class="opacity-50" />
+        </button>
+      </header>
+      <section class="flex p-6 gap-6 flex-col md:flex-row items-center">
+        @if (form.controls.contact.value; as contact) {
+          <article
+            class="p-3 rounded-lg border border-dashed border-neutral-500 text-center flex items-center justify-center shrink-0 w-full max-w-60"
+          >
+            <div class="w-full truncate">
+              <div class="mb-4">
+                <div
+                  class="size-10 bg-gray-800 rounded-lg text-white flex items-center justify-center uppercase mx-auto"
+                >
+                  {{ contact.first_name + ' ' + contact.last_name | initials }}
+                </div>
+              </div>
+              <div>
+                <h3 class="font-bold truncate">{{ contact.first_name }} {{ contact.last_name }}</h3>
+                <small class="text-gray-500 text-sm truncate">{{ form.controls.title.value || 'Title' }}</small>
+              </div>
+              <h4 class="text-4xl my-3">{{ form.controls.percentage.value ? form.controls.percentage.value : 0 }}%</h4>
+              <small class="text-xs truncate"
+                >Member since:
+                {{ form.controls.member_since.valid ? (form.controls.member_since.value! | customDate) : '' }}</small
+              >
+            </div>
+          </article>
+        }
+
+        <form class="flex flex-col gap-4 w-full" [formGroup]="form" (ngSubmit)="submit()">
+          <app-custom-input label="Title" formControlName="title" />
+
+          <app-custom-input
+            label="Ownership percentage"
+            formControlName="percentage"
+            type="number"
+            pattern="^\d*(\.\d{0,2})?$"
+            min="0"
+            max="100"
+            step="0.01"
+          />
+          <app-custom-input label="Member since" formControlName="member_since" type="date" [max]="maxMerberSince()" />
+          <div class="flex justify-end mt-10 md:flex-row flex-col text-center max-md:w-full">
+            <button class="items-center gap-2 bg-secondary px-4 py-2 rounded-lg text-white md:flex" type="submit">
+              Continue
+              <div class="relative size-5 shrink-0 hidden md:block">
+                <img src="/assets/icons/arrow-right.svg" alt="Right" class="filter invert-[100%]" fill />
+              </div>
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  }
+</app-modal>

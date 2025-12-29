@@ -1,0 +1,108 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="flex gap-6 flex-wrap justify-between">
+    <div>
+      <h3 class="text-gray-700 font-bold mb-2">Classifications</h3>
+      <div class="*:flex *:items-center *:gap-2 *:mb-2">
+        @for (classification of classifications(); track $index) {
+          <div>
+            <input
+              [id]="'classification_' + classification"
+              (change)="toggleCheckbox($event, form.controls.classifications)"
+              type="checkbox"
+              [value]="classification"
+              [checked]="false"
+              class="size-4 bg-gray-100 border-gray-300 rounded"
+            />
+            <label [for]="'classification_' + classification" class="text-sm font-medium text-gray-900">{{
+              classification
+            }}</label>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div>
+      <h3 class="text-gray-700 font-bold mb-2">Countries</h3>
+      <div class="*:flex *:items-center *:gap-2 *:mb-2">
+        @for (item of countries() | keyvalue; track $index) {
+          <div>
+            <input
+              [id]="'country_' + item.key"
+              (change)="toggleCheckbox($event, form.controls.countries)"
+              type="checkbox"
+              [value]="item.key"
+              [checked]="false"
+              class="size-4 bg-gray-100 border-gray-300 rounded"
+            />
+            <label [for]="'country_' + item.key" class="text-sm font-medium text-gray-900">{{ item.value }}</label>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div>
+      <h3 class="text-gray-700 font-bold mb-2">Territories</h3>
+      <div class="*:flex *:items-center *:gap-2 *:mb-2">
+        @for (item of countries() | keyvalue; track $index) {
+          <div>
+            <input
+              [id]="'territory_' + item.key"
+              (change)="toggleCheckbox($event, form.controls.territories)"
+              type="checkbox"
+              [value]="item.key"
+              [checked]="false"
+              class="size-4 bg-gray-100 border-gray-300 rounded"
+            />
+            <label [for]="'territory_' + item.key" class="text-sm font-medium text-gray-900">{{ item.value }}</label>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div>
+      <h3 class="text-gray-700 font-bold mb-2">Accepted documents</h3>
+      <div class="grid lg:grid-cols-3 grid-cols-1 gap-2" formArrayName="supported_ids">
+        @for (document of businessConfig.supportedIDs() | keyvalue; track $index) {
+          <label [for]="'checkboxDocuments' + $index" class="flex items-center">
+            <input
+              [id]="'checkboxDocuments' + $index"
+              (change)="toggleCheckbox($event, form.controls.supported_ids)"
+              type="checkbox"
+              [value]="document.key"
+              [checked]="(form.controls.supported_ids.value ?? []).includes(document.key)"
+              class="mr-2"
+            />
+            {{ document.value }}
+          </label>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-4 grid-cols-1 gap-3 mb-4">
+    <div><app-custom-input label="Minimum transactions" formControlName="deposits_minimum_transactions" /></div>
+    <div><app-custom-input label="Minimum balance" formControlName="deposits_minimum_amount" /></div>
+    <div>
+      <app-custom-input label="Loan Limit" formControlName="loan_limit" prefix="$" />
+    </div>
+    <div>
+      <app-custom-input label="Minimun Months in business" formControlName="minimum_months_in_business" />
+    </div>
+    <div>
+      <app-custom-input label="Min daily balance" formControlName="minimum_daily_balance" prefix="$" />
+    </div>
+    <div>
+      <app-custom-input label="Max negative days" formControlName="maximum_negative_days" />
+    </div>
+    <div>
+      <app-checkbox-select formControlName="positions" placeholder="Positions" [options]="businessConfig.positions()" />
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <app-select-industries [maxSelection]="1" label="Allowed industries" formControlName="allowed_industries" />
+  </div>
+  <div>
+    <button class="w-full bg-secondary px-4 py-2 rounded-lg text-white" type="submit">Search</button>
+  </div>
+</form>

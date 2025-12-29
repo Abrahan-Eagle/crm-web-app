@@ -1,0 +1,323 @@
+<div class="p-7">
+  <div class="rounded-2xl shadow bg-white p-6">
+    <div class="flex flex-col gap-6 mb-4">
+      <div class="relative inline-flex gap-2">
+        <div class="w-11 h-5">
+          <input
+            id="toggle_advanced_search"
+            type="checkbox"
+            class="peer appearance-none w-11 h-5 bg-slate-100 rounded-full checked:bg-secondary cursor-pointer transition-colors duration-300"
+            (change)="advancedSearch.set(!advancedSearch())"
+          />
+
+          <label
+            for="toggle_advanced_search"
+            class="absolute top-0 left-0 h-5 w-5 cursor-pointer rounded-full border border-slate-300 bg-white shadow-sm transition-all duration-300 before:absolute before:top-2/4 before:left-2/4 before:block before:h-10 before:w-10 before:-translate-y-2/4 before:-translate-x-2/4 before:rounded-full before:bg-slate-400 before:opacity-0 before:transition-opacity hover:before:opacity-10 peer-checked:translate-x-6 peer-checked:border-secondary"
+          >
+            <div
+              class="top-2/4 left-2/4 inline-block -translate-x-2/4 -translate-y-2/4 rounded-full p-5"
+              data-ripple-dark="true"
+            ></div>
+          </label>
+        </div>
+
+        <label for="toggle_advanced_search" class="text-slate-600 text-sm cursor-pointer"> Advanced Search </label>
+      </div>
+    </div>
+
+    @if (advancedSearch()) {
+      @defer {
+        <app-advanced-bank-filters />
+      }
+    } @else {
+      @defer {
+        <app-bank-search-bar />
+      }
+    }
+    <hr class="my-4" />
+    <section>
+      @if (loading()) {
+        <div class="text-center py-9">
+          <div class="loader"></div>
+        </div>
+      } @else {
+        @if (banks() && banks()!.data!.length > 0) {
+          <!-- Desktop Table View (1200px+) -->
+          <div class="hidden 2xl:block">
+            <div class="relative overflow-x-auto">
+              <table class="w-full text-left">
+                <thead>
+                  <tr class="*:font-normal *:text-neutral-400 *:px-6 *:py-3">
+                    <th scope="col">Name</th>
+                    <th scope="col">Classifications</th>
+                    <th scope="col">Country</th>
+                    <th scope="col">Territories</th>
+                    <th scope="col">Constraints</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (bank of banks()?.data; track bank.id) {
+                    <tr
+                      class="bg-white border-b border-dashed border-neutral-200 *:px-6 *:py-4 *:whitespace-nowrap [&>th]:ps-0"
+                    >
+                      <th scope="row" [routerLink]="[bank.id]" class="font-normal">
+                        <a [routerLink]="[bank.id]">
+                          <div class="flex gap-4 items-center">
+                            <div
+                              class="size-10 bg-primary rounded-lg text-white flex items-center justify-center uppercase"
+                            >
+                              {{ bank.name | initials }}
+                            </div>
+                            <div>
+                              @if (permissions.hasPermission(permission.READ_BANK_TYPE)) {
+                                <div
+                                  class="uppercase text-xs bg-secondary text-white inline-block px-2 rounded-md tracking-wide"
+                                >
+                                  {{ bank.bank_type }}
+                                </div>
+                              }
+                              <div class="flex items-center gap-2">
+                                <p class="font-bold">{{ bank.name }}</p>
+                                @if (bank.blacklist) {
+                                  <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">Blacklist</span>
+                                }
+                              </div>
+
+                              <p>{{ bank.manager }}</p>
+                            </div>
+                          </div>
+                        </a>
+                      </th>
+                      <td>
+                        {{ bank.classifications.sort() }}
+                      </td>
+                      <td>
+                        <div class="flex items-center gap-1">
+                          <div class="relative size-5">
+                            <img
+                              [ngSrc]="
+                                'https://raw.githubusercontent.com/hampusborgos/country-flags/main/svg/' +
+                                bank.country_iso_code_2.toLowerCase() +
+                                '.svg'
+                              "
+                              [alt]="bank.country_iso_code_2"
+                              fill
+                            />
+                          </div>
+                          <p>{{ demographics.allCountries()?.[bank.country_iso_code_2] }}</p>
+                        </div>
+                      </td>
+                      <td class="*:text-white *:bg-blue-900 *:text-center *:rounded-lg *:m-2 *:text-sm *:px-2">
+                        @for (territory of bank.territories; track $index) {
+                          <p>
+                            {{ territory.territory }}
+                          </p>
+                        }
+                      </td>
+                      <td class="text-sm">
+                        @if (bank.has_loan_limit) {
+                          <p>Loan limit: {{ bank.loan_limit | currency: 'USD' : 'symbol' : '0.0-2' }}</p>
+                        }
+                        <p>Minimum loan: {{ bank.minimum_loan | currency: 'USD' : 'symbol' : '0.0-2' }}</p>
+                        <p>Daily balance: {{ bank.minimum_daily_balance | currency: 'USD' : 'symbol' : '0.0-2' }}</p>
+                        <p>Negative days: {{ bank.maximum_negative_days }}</p>
+                        @if (bank.deposits) {
+                          <b>Deposits</b>
+                          <p>Transactions: {{ bank.deposits.minimum_transactions }}</p>
+                          <p>Amount: {{ bank.deposits.minimum_amount | currency: 'USD' : 'symbol' : '0.0-2' }}</p>
+
+                          @if (bank?.deposits?.by_industries && bank.deposits.by_industries.length > 0) {
+                            <b class="text-red-500">This bank has restrictions by industries</b>
+                          }
+                        }
+                      </td>
+                      <td>
+                        <p
+                          class="text-center rounded-lg first-letter:capitalize inline-block px-3 py-1 min-w-24"
+                          [ngClass]="bank.status === 'active' ? 'bg-emerald-500' : 'bg-stone-300'"
+                        >
+                          {{ bank.status }}
+                        </p>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Tablet List View (768px - 1199px) -->
+          <div class="hidden md:block 2xl:hidden">
+            <div class="space-y-3">
+              @for (bank of banks()?.data; track bank.id) {
+                <div
+                  class="bg-white border border-neutral-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                  [routerLink]="[bank.id]"
+                >
+                  <div class="flex justify-between items-start">
+                    <!-- Left Side - Bank Info -->
+                    <div class="flex items-center gap-3 flex-1">
+                      <div
+                        class="size-10 bg-primary rounded-lg text-white flex items-center justify-center uppercase text-sm"
+                      >
+                        {{ bank.name | initials }}
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                          <p class="font-bold text-lg truncate">{{ bank.name }}</p>
+                          @if (bank.blacklist) {
+                            <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">Blacklist</span>
+                          }
+                        </div>
+                        <p class="text-neutral-600 text-sm truncate">{{ bank.manager }}</p>
+                        <div class="flex items-center gap-2 mt-1">
+                          <div class="relative size-4">
+                            <img
+                              [ngSrc]="
+                                'https://raw.githubusercontent.com/hampusborgos/country-flags/main/svg/' +
+                                bank.country_iso_code_2.toLowerCase() +
+                                '.svg'
+                              "
+                              [alt]="bank.country_iso_code_2"
+                              fill
+                            />
+                          </div>
+                          <p class="text-sm">{{ demographics.allCountries()?.[bank.country_iso_code_2] }}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Right Side - Status & Quick Info -->
+                    <div class="flex flex-col items-end gap-2 ml-4">
+                      <p
+                        class="text-center rounded-lg first-letter:capitalize inline-block px-3 py-1 text-sm"
+                        [ngClass]="bank.status === 'active' ? 'bg-emerald-500 text-white' : 'bg-stone-300 text-black'"
+                      >
+                        {{ bank.status }}
+                      </p>
+                      <div class="text-right text-sm">
+                        <p class="font-medium">{{ bank.classifications.sort() }}</p>
+                        <p class="text-neutral-600">
+                          Min: {{ bank.minimum_loan | currency: 'USD' : 'symbol' : '0.0-0' }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Mobile Card View (0 - 767px) -->
+          <div class="md:hidden space-y-4">
+            @for (bank of banks()?.data; track bank.id) {
+              <div
+                class="bg-white border border-neutral-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                [routerLink]="[bank.id]"
+              >
+                <!-- Header -->
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex gap-3 items-center flex-1 min-w-0">
+                    <div
+                      class="size-12 bg-primary rounded-lg text-white flex items-center justify-center uppercase text-lg"
+                    >
+                      {{ bank.name | initials }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-1">
+                        <p class="font-bold text-base truncate">{{ bank.name }}</p>
+                        @if (bank.blacklist) {
+                          <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">Blacklist</span>
+                        }
+                      </div>
+                      <p class="text-neutral-600 text-sm truncate">{{ bank.manager }}</p>
+                    </div>
+                  </div>
+                  <div class="flex flex-col gap-1 ml-2">
+                    <p
+                      class="text-center rounded-lg first-letter:capitalize inline-block px-2 py-1 text-xs"
+                      [ngClass]="bank.status === 'active' ? 'bg-emerald-500 text-white' : 'bg-stone-300 text-black'"
+                    >
+                      {{ bank.status }}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Content -->
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <div class="relative size-4">
+                        <img
+                          [ngSrc]="
+                            'https://raw.githubusercontent.com/hampusborgos/country-flags/main/svg/' +
+                            bank.country_iso_code_2.toLowerCase() +
+                            '.svg'
+                          "
+                          [alt]="bank.country_iso_code_2"
+                          fill
+                        />
+                      </div>
+                      <p class="text-sm">{{ demographics.allCountries()?.[bank.country_iso_code_2] }}</p>
+                    </div>
+                    <p class="text-xs text-neutral-600">{{ bank.classifications.sort() }}</p>
+                  </div>
+
+                  <div class="bg-neutral-50 rounded-lg p-3">
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <p class="text-neutral-500">Min Loan</p>
+                        <p class="font-medium">{{ bank.minimum_loan | currency: 'USD' : 'symbol' : '0.0-0' }}</p>
+                      </div>
+                      <div>
+                        <p class="text-neutral-500">Daily Balance</p>
+                        <p class="font-medium">
+                          {{ bank.minimum_daily_balance | currency: 'USD' : 'symbol' : '0.0-0' }}
+                        </p>
+                      </div>
+                      @if (bank.has_loan_limit) {
+                        <div>
+                          <p class="text-neutral-500">Loan Limit</p>
+                          <p class="font-medium">{{ bank.loan_limit | currency: 'USD' : 'symbol' : '0.0-0' }}</p>
+                        </div>
+                      }
+                      <div>
+                        <p class="text-neutral-500">Negative Days</p>
+                        <p class="font-medium">{{ bank.maximum_negative_days }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  @if (bank.territories && bank.territories.length > 0) {
+                    <div class="flex flex-wrap gap-1">
+                      @for (territory of bank.territories; track $index) {
+                        <span class="text-white bg-blue-900 text-center rounded text-xs px-2 py-1">
+                          {{ territory.territory }}
+                        </span>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          @defer {
+            <div class="text-center py-9">
+              <app-banks-not-found />
+            </div>
+          }
+        }
+      }
+
+      @defer {
+        @if (banks()?.pagination) {
+          <div class="mt-6">
+            <app-pagination />
+          </div>
+        }
+      }
+    </section>
+  </div>
+</div>

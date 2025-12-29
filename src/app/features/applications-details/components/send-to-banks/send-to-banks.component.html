@@ -1,0 +1,167 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="mb-4">
+    <label for="message">Message</label>
+    <textarea
+      id="message"
+      placeholder="Write your message here"
+      formControlName="message"
+      class="w-full h-20 px-4 py-2 text-gray-700 border rounded-md focus:outline-none focus:border-gray-500 mt-2"
+    ></textarea>
+    <app-form-error-message [control]="form.controls.message" />
+  </div>
+
+  <div class="mb-4">
+    @if (!loading()) {
+      <button
+        class="w-full px-6 py-3 text-lg text-white bg-red-600 rounded-md disabled:opacity-50"
+        type="submit"
+        [disabled]="form.invalid"
+      >
+        Send to banks
+      </button>
+    } @else {
+      <div class="text-center">
+        <div class="loader"></div>
+      </div>
+    }
+  </div>
+
+  <div>
+    <div class="bg-stone-100 w-full md:max-w-96 flex h-11 items-center rounded-2xl ps-4 gap-4 mb-4">
+      <label for="search" class="relative size-4 shrink-0"
+        ><img ngSrc="/assets/icons/search.svg" alt="Search" fill
+      /></label>
+      <input
+        type="text"
+        id="search"
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event)"
+        (keyup.enter)="getBanks()"
+        placeholder="search"
+        class="bg-transparent grow h-full px-2"
+        [ngModelOptions]="{ standalone: true }"
+      />
+    </div>
+
+    @if (banks().length > 0) {
+      <div class="mb-2">
+        <input
+          type="checkbox"
+          class="mr-2"
+          id="toggleAll"
+          (change)="toggleAll($event)"
+          [checked]="selectedIds().size === banks().length"
+        />
+        <label for="toggleAll" class="cursor-pointer text-sm">Check/Uncheck recommended banks</label>
+      </div>
+    }
+    <div class="grid grid-cols-1 gap-2 xl:grid-cols-2 mb-4">
+      @for (bank of banks(); track bank.id!) {
+        <div class="p-4 border rounded-md truncate">
+          <div class="flex items-center">
+            <label class="flex items-center gap-4 grow" [for]="'checkbox_' + bank.id!">
+              <input
+                type="checkbox"
+                (change)="toggleBank(bank.id!)"
+                [id]="'checkbox_' + bank.id!"
+                [checked]="selectedIds().has(bank.id!)"
+              />
+              <div class="flex items-center gap-4">
+                <div class="bg-blue-950 text-white rounded-lg flex items-center justify-center size-10">
+                  {{ bank.name | initials }}
+                </div>
+                <div class="truncate">
+                  <p class="font-semibold text-gray-900 truncate">
+                    {{ bank.name }}
+                  </p>
+                  <div class="flex gap-2 items-center">
+                    <div class="relative size-5 shrink-0">
+                      <img
+                        [ngSrc]="
+                          'https://raw.githubusercontent.com/hampusborgos/country-flags/main/svg/' +
+                          (bank.address?.country_iso_code_2?.toLowerCase() ?? bank.country_iso_code_2?.toLowerCase()) +
+                          '.svg'
+                        "
+                        [alt]="
+                          bank.address?.country_iso_code_2?.toLowerCase() ?? bank.country_iso_code_2?.toLowerCase()
+                        "
+                        fill
+                      />
+                    </div>
+                    <p class="text-sm text-gray-600 truncate">
+                      {{ bank.manager }}
+                    </p>
+                  </div>
+                  @if (permissions.hasPermission(permission.READ_BANK_TYPE)) {
+                    <div class="uppercase text-xs bg-secondary text-white inline-block px-2 rounded-md tracking-wide">
+                      {{ bank.bank_type }}
+                    </div>
+                  }
+                </div>
+              </div>
+            </label>
+            @if (bank.constraints) {
+              <div class="shrink-0">
+                <a
+                  class="relative size-5 block cursor-pointer"
+                  (click)="bankInModal.set(bank); bankDetailsModal.open()"
+                >
+                  <img
+                    ngSrc="
+                  assets/icons/eye.svg
+                "
+                    class="opacity-50"
+                    alt="View details"
+                    fill
+                  />
+                </a>
+              </div>
+            }
+          </div>
+        </div>
+      } @empty {
+        @if (!search()) {
+          <div class="text-center col-span-full">
+            <img
+              ngSrc="/assets/icons/bank/no-banks-found.svg"
+              alt="Nothing found"
+              width="242"
+              height="242"
+              priority
+              class="mx-auto mb-4"
+            />
+            <h3 class="text-2xl font-bold">No suggestions</h3>
+            <p class="text-balance">We couldn't find any bank to send this application to.</p>
+          </div>
+        }
+      }
+    </div>
+    <app-form-error-message [control]="form.controls.bank_ids" />
+  </div>
+</form>
+
+<app-modal #bankDetailsModal (closed)="bankInModal.set(null)">
+  <div class="h-full flex items-center">
+    <div class="bg-white w-full rounded-lg overflow-auto max-h-full">
+      <header class="p-4 flex justify-between items-center border border-b border-gray-300">
+        <h2 class="font-bold text-xl truncate">Bank relevant details</h2>
+        <button (click)="bankDetailsModal.close()" class="shrink-0">
+          <img
+            ngSrc="/assets/icons/close-icon.svg"
+            width="14"
+            height="18"
+            alt="close"
+            style="filter: invert(64%) sepia(1%) saturate(370%) hue-rotate(314deg) brightness(94%) contrast(91%)"
+          />
+        </button>
+      </header>
+      <section class="p-4">
+        @defer (when bankInModal()) {
+          @if (bankInModal(); as bank) {
+            <app-bank-relevant-details [bank]="bank" />
+          }
+        }
+      </section>
+    </div>
+  </div>
+</app-modal>

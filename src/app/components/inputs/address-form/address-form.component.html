@@ -1,0 +1,58 @@
+<form [formGroup]="form" autocomplete="off">
+  <div class="mb-5">
+    <app-custom-input label="Line 1" formControlName="address_line_1" />
+  </div>
+  <div class="mb-5">
+    <app-custom-input label="Line 2" formControlName="address_line_2" />
+  </div>
+  <div class="mb-5">
+    <app-auto-complete
+      label="Search country"
+      [options]="countries()"
+      (searchMore)="searchCountry($event)"
+      optionLabel="name"
+      formControlName="country"
+    />
+    <app-form-error-message [control]="form.controls.country" />
+  </div>
+
+  <div class="mb-5">
+    @if (!loadingStates()) {
+      <app-auto-complete
+        label="Search state"
+        [options]="states()"
+        (searchMore)="searchState($event)"
+        optionLabel="name"
+        formControlName="state"
+      />
+    } @else {
+      <div class="text-center">
+        <div class="loader"></div>
+      </div>
+    }
+
+    <app-form-error-message [control]="form.controls.state" />
+  </div>
+
+  <div class="mb-5">
+    @if (!loadingCities()) {
+      <app-auto-complete
+        [createOnNotFound]="true"
+        label="City"
+        (searchMore)="searchCity($event)"
+        [options]="cities()"
+        formControlName="city"
+        (keydown.enter)="$event.preventDefault()"
+      />
+    } @else {
+      <div class="text-center">
+        <div class="loader"></div>
+      </div>
+    }
+    <app-form-error-message [control]="form.controls.city" />
+  </div>
+
+  <div>
+    <app-custom-input label="ZIP Code" formControlName="zip_code" />
+  </div>
+</form>

@@ -1,0 +1,109 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="p-4">
+    <div class="flex items-center">
+      <input
+        id="mtd"
+        type="checkbox"
+        [checked]="form.controls.mtd_statements.enabled"
+        (change)="toggle($event, 'mtd_statements')"
+      />
+
+      <label for="mtd" class="ml-2 text-gray-700">MTD statements</label>
+    </div>
+
+    @if (form.controls.mtd_statements.enabled === true) {
+      <div class="grid xl:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-4">
+        <div>
+          <div class="mb-4 w-full">
+            <app-document-picker formControlName="mtd_statements" />
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="p-4">
+    <input
+      id="credit_card_statements"
+      type="checkbox"
+      [checked]="form.controls.credit_card_statements.enabled"
+      (change)="toggle($event, 'credit_card_statements')"
+    />
+    <label for="credit_card_statements" class="ml-2 text-gray-700">Credit card statements</label>
+    @if (form.controls.credit_card_statements.enabled === true) {
+      <div formArrayName="credit_card_statements" class="grid xl:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-4">
+        @for (document of form.controls.credit_card_statements.controls; track $index; let parent = $index) {
+          <div [formGroup]="document">
+            @let period = document.controls.statement.value?.period;
+            @if (period) {
+              <h4 class="font-bold mb-4">{{ period + '01' | date: 'MMMM' }} statement</h4>
+            }
+            <app-document-picker formControlName="statement" />
+          </div>
+        }
+      </div>
+    }
+  </div>
+  <app-form-error-message [control]="form.controls.credit_card_statements" />
+
+  <div class="p-4">
+    <div class="flex items-center mb-4">
+      <input
+        id="additional_statements"
+        type="checkbox"
+        [checked]="form.controls.additional_statements.enabled"
+        (change)="toggle($event, 'additional_statements')"
+      />
+      <label for="additional_statements" class="ml-2 text-gray-700">Additional account statements</label>
+    </div>
+
+    <div formArrayName="additional_statements">
+      @if (form.controls.additional_statements.enabled === true) {
+        <div class="grid xl:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-4">
+          @for (item of form.controls.additional_statements.controls; track $index) {
+            <div [formGroup]="item" class="flex flex-col lg:flex-row gap-4 mt-4">
+              <div class="mb-4 w-full">
+                <div class="flex justify-between items-center mb-2">
+                  <h4 class="text-gray-700 text-sm font-bold">Additional statements</h4>
+                  <button class="shrink-0" type="button" (click)="removeAdditional($index)">
+                    <img src="/assets/icons/trash-icon.svg" width="14" height="16" alt="Delete" />
+                  </button>
+                </div>
+                <app-document-picker formControlName="statement" />
+              </div>
+            </div>
+          }
+        </div>
+        @if (form.controls.additional_statements.length < config.applicationMaxAdditionalStatements) {
+          <button
+            type="button"
+            (click)="addAdditional()"
+            class="px-2 text-sky-600 flex items-center justify-center border border-sky-600 rounded-md text-sm"
+          >
+            Add statement
+          </button>
+        }
+      }
+    </div>
+  </div>
+  <app-form-error-message [control]="formService.form" />
+
+  <div class="flex gap-4 justify-end mt-10 md:flex-row flex-col text-center max-md:w-full">
+    <button
+      class="items-center gap-2 bg-zinc-200 px-4 py-2 rounded-lg md:flex"
+      type="button"
+      (click)="formService.prev()"
+    >
+      <div class="relative size-5 shrink-0 hidden md:block">
+        <img ngSrc="/assets/icons/arrow-left.svg" alt="Back" fill />
+      </div>
+      Cancel
+    </button>
+    <button class="items-center gap-2 bg-secondary px-4 py-2 rounded-lg text-white md:flex" type="submit">
+      Continue
+      <div class="relative size-5 shrink-0 hidden md:block">
+        <img ngSrc="/assets/icons/arrow-right.svg" alt="Right" class="filter invert-[100%]" fill />
+      </div>
+    </button>
+  </div>
+</form>

@@ -1,0 +1,17 @@
+<div class="text-center text-white pt-2 mb-4 px-4">
+  @if (tenants().length) {
+    <p class="text-sm text-white/45">Tenant</p>
+    <select
+      name="switch_tenant"
+      id="switch_tenant"
+      class="bg-white/5 py-1 px-2 rounded border border-white/10 text-white w-full text-sm appearance-none cursor-pointer hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20 focus:bg-white/10"
+      (change)="switchTenant($event)"
+    >
+      @for (tenant of tenants(); track $index) {
+        <option [value]="tenant.id" class="text-black bg-white" [selected]="tenant.id === currentTenant()">
+          {{ tenant.name }}
+        </option>
+      }
+    </select>
+  }
+</div>

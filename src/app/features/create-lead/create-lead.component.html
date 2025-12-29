@@ -1,0 +1,91 @@
+<div class="p-3">
+  <div class="bg-white p-6 rounded-lg shadow-lg">
+    <h2 class="text-2xl font-bold mb-6 text-center">Create Lead</h2>
+    <hr class="mb-4" />
+    @if (failedRows().length > 0) {
+      <div>
+        <h4 class="text-lg font-semibold">
+          The lead was loaded, but the following rows were excluded because they contain errors:
+        </h4>
+        @for (row of failedRows(); track $index) {
+          <p>{{ row }}</p>
+        }
+      </div>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="mb-4"><app-custom-input formControlName="name" placeholder="Name" /></div>
+        <div class="flex gap-4 md:flex-row flex-col md:justify-center">
+          <div>
+            <h3 class="mb-2 text-lg font-semibold">Assigned To</h3>
+            @if (!form.controls.assigned_to.value) {
+              <app-search-user (userSelected)="form.controls.assigned_to.setValue($event)" />
+            } @else {
+              @let user = form.controls.assigned_to.value!;
+              <article
+                class="p-3 rounded-lg border border-dashed border-neutral-500 text-center flex items-center justify-center xl:w-60 w-44"
+              >
+                <div class="w-full truncate">
+                  <div class="mb-4">
+                    <div class="flex gap-2 justify-end items-center">
+                      <button class="size-4 relative" type="button" (click)="form.controls.assigned_to.reset()">
+                        <img src="/assets/icons/trash-icon.svg" alt="Remove" width="14" />
+                      </button>
+                    </div>
+                    <div
+                      class="size-10 bg-gray-800 rounded-lg text-white flex items-center justify-center uppercase mx-auto mt-4"
+                    >
+                      {{ user.first_name + ' ' + user.last_name | initials }}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 class="font-bold truncate text-xl">{{ user.first_name }} {{ user.last_name }}</h3>
+                    <p class="text-gray-500 text-sm truncate">
+                      {{ user.email }}
+                    </p>
+                  </div>
+                </div>
+              </article>
+            }
+            <app-form-error-message [control]="form.controls.assigned_to" />
+          </div>
+          <div class="grow">
+            <h3 class="mb-2 text-lg font-semibold">File</h3>
+            <app-file-picker
+              [maxFiles]="1"
+              [validExtensions]="['.xlsx']"
+              (selectFiles)="addFile($event)"
+              [manualHandled]="true"
+            />
+            @if (form.controls.file.value) {
+              <div class="flex flex-col gap-3">
+                @let file = form.controls.file.value!;
+                @defer {
+                  <app-file-handler
+                    [name]="file.name"
+                    [type]="file.type"
+                    [sizeInKb]="file.size"
+                    (removeFile)="form.controls.file.reset()"
+                    [withType]="false"
+                    [source]="file"
+                  />
+                }
+              </div>
+            }
+
+            <app-form-error-message [control]="form.controls.file" />
+          </div>
+        </div>
+
+        @if (!loading()) {
+          <button class="items-center gap-2 bg-secondary px-4 py-2 rounded-lg text-white w-full mt-4" type="submit">
+            Create
+          </button>
+        } @else {
+          <div class="flex justify-center items-center h-full mt-4">
+            <div class="loader"></div>
+          </div>
+        }
+      </form>
+    }
+  </div>
+</div>

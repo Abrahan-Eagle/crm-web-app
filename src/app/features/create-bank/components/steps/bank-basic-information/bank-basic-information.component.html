@@ -1,0 +1,26 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div class="mb-5">
+    <app-custom-input label="Bank name" formControlName="name" />
+  </div>
+  <div class="mb-5">
+    <app-custom-input label="Manager" formControlName="manager" />
+  </div>
+
+  <div class="mb-5">
+    <app-custom-select
+      [options]="['lender', 'broker']"
+      [labels]="['Lender', 'Broker']"
+      formControlName="bank_type"
+      placeholder="Select Bank Type"
+    />
+  </div>
+
+  <div class="flex gap-4 justify-end mt-10 md:flex-row flex-col text-center max-md:w-full">
+    <button class="items-center gap-2 bg-secondary px-4 py-2 rounded-lg text-white md:flex" type="submit">
+      Continue
+      <div class="relative size-5 shrink-0 hidden md:block">
+        <img ngSrc="/assets/icons/arrow-right.svg" alt="Right" class="filter invert-[100%]" fill />
+      </div>
+    </button>
+  </div>
+</form>

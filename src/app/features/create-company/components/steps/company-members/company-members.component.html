@@ -1,0 +1,58 @@
+<header>
+  <h2 class="text-lg font-medium text-gray-900 mb-2">Members</h2>
+</header>
+
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <section class="flex flex-wrap max-md:justify-center gap-4">
+    @for (member of members(); track $index) {
+      <article
+        class="p-3 rounded-lg border border-dashed border-neutral-500 text-center flex items-center justify-center shrink-0 w-full max-w-60"
+      >
+        <div class="w-full truncate">
+          <div class="mb-4">
+            <div class="flex gap-2 justify-end items-center">
+              <button class="size-4 relative" type="button" (click)="addMemberComponent.updateMember(member)">
+                <img src="/assets/icons/edit.svg" alt="Edit" fill />
+              </button>
+              <button class="size-4 relative" type="button" (click)="removeMember($index)">
+                <img src="/assets/icons/trash-icon.svg" alt="Remove" width="14" />
+              </button>
+            </div>
+            <div class="size-10 bg-gray-800 rounded-lg text-white flex items-center justify-center uppercase mx-auto">
+              {{ member.contact!.first_name + ' ' + member.contact!.last_name | initials }}
+            </div>
+          </div>
+          <div>
+            <h3 class="font-bold truncate">{{ member.contact!.first_name + ' ' + member.contact!.last_name }}</h3>
+            <small class="text-gray-500 text-sm truncate">{{ member.title }}</small>
+          </div>
+          <h4 class="text-4xl my-3">{{ member.percentage }}%</h4>
+          <small class="text-xs truncate">Member since: {{ member.member_since | customDate }}</small>
+        </div>
+      </article>
+    }
+    @if (!canAddMoreMembers) {
+      <app-add-member (memberAdd)="addMember($event)" #addMemberComponent />
+    }
+  </section>
+  <app-form-error-message [control]="form.controls.members" />
+
+  <div class="flex gap-4 justify-end mt-10 md:flex-row flex-col text-center max-md:w-full">
+    <button
+      class="items-center gap-2 bg-zinc-200 px-4 py-2 rounded-lg md:flex"
+      type="button"
+      (click)="formService.prev()"
+    >
+      <div class="relative size-5 shrink-0 hidden md:block">
+        <img ngSrc="/assets/icons/arrow-left.svg" alt="Back" fill />
+      </div>
+      Cancel
+    </button>
+    <button class="items-center gap-2 bg-secondary px-4 py-2 rounded-lg text-white md:flex" type="submit">
+      Continue
+      <div class="relative size-5 shrink-0 hidden md:block">
+        <img ngSrc="/assets/icons/arrow-right.svg" alt="Right" class="filter invert-[100%]" fill />
+      </div>
+    </button>
+  </div>
+</form>

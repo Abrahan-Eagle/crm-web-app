@@ -1,0 +1,20 @@
+<section class="p-2 flex justify-center items-center">
+  <form [formGroup]="form" (ngSubmit)="submit()" class="w-full">
+    <div class="mt-5">
+      <app-custom-select
+        formControlName="substatus"
+        placeholder="Select Substatus"
+        [options]="applicationSubStatus().values"
+        [labels]="applicationSubStatus().labels"
+      />
+    </div>
+
+    <div class="flex flex-col items-center justify-center mt-10 w-full">
+      @if (!loading()) {
+        <button class="w-full bg-secondary px-4 py-2 rounded-lg text-white text-center" type="submit">Update</button>
+      } @else {
+        <div class="loader"></div>
+      }
+    </div>
+  </form>
+</section>

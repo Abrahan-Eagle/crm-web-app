@@ -1,0 +1,55 @@
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 w-full max-w-4xl mx-auto py-2 gap-3">
+  @for (step of steps; track step) {
+    <div class="flex flex-col items-center text-center">
+      <div
+        class="flex items-center justify-center size-10 rounded-full"
+        [ngClass]="completedSteps() == $index ? 'bg-secondary text-white' : 'bg-gray-200 text-gray-500'"
+      >
+        {{ $index + 1 }}
+      </div>
+      <p class="mt-2 text-sm font-semibold" [ngClass]="completedSteps() == $index ? 'text-secondary' : 'text-gray-400'">
+        @switch (step.join('_')) {
+          @case ('OFFER_ACCEPTED_REJECTED') {
+            @if (completedSteps() < $index) {
+              {{ labelSteps.get(step.join('_')) }}
+            } @else {
+              {{
+                labelSteps.get(
+                  completedSteps() === $index
+                    ? currentStatus
+                    : 'OFFER_ACCEPTED' === currentStatus
+                      ? 'OFFER_ACCEPTED'
+                      : 'REJECTED'
+                )
+              }}
+            }
+            @if (currentStatus === 'OFFER_ACCEPTED' && substatus) {
+              <span class="font-semibold text-black text-sm">
+                {{ config.applicationsubstatus()[substatus] }}
+              </span>
+            }
+          }
+          @case ('REPLIED_OFFERED') {
+            @if (completedSteps() < $index) {
+              {{ labelSteps.get(step.join('_')) }}
+            } @else {
+              {{
+                labelSteps.get(
+                  completedSteps() === $index
+                    ? currentStatus
+                    : currentStatus === 'REJECTED'
+                      ? 'REPLIED_OFFERED'
+                      : 'OFFERED'
+                )
+              }}
+            }
+          }
+
+          @default {
+            {{ labelSteps.get(step.join('_')) }}
+          }
+        }
+      </p>
+    </div>
+  }
+</div>

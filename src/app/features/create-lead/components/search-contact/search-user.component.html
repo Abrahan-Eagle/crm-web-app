@@ -1,0 +1,75 @@
+<section
+  class="flex flex-col justify-center items-center bg-gray-100 border border-dashed border-neutral-500 rounded-lg hover:bg-gray-200 xl:size-60 size-44"
+>
+  <button
+    type="button"
+    (click)="searchUserModal.open()"
+    class="flex flex-col items-center justify-center grow h-full w-full"
+  >
+    <img src="assets\icons\add.svg" alt="Add" class="size-10 filter invert-[100%]" />
+    <span class="text-black">Search user</span>
+  </button>
+</section>
+<!-- Search -->
+<app-modal #searchUserModal [backgroundClose]="true">
+  @defer {
+    <div class="flex items-center justify-center">
+      <div class="bg-white w-full max-w-lg rounded-lg overflow-auto">
+        <header class="p-4 flex justify-between items-center border-b border-gray-300">
+          <h2 class="font-bold text-xl truncate">Search user</h2>
+          <button (click)="searchUserModal.close()" class="shrink-0">
+            <img ngSrc="/assets/icons/close-icon.svg" width="14" height="18" alt="Close" class="opacity-50" />
+          </button>
+        </header>
+        <section class="p-4 flex justify-center items-center">
+          <div class="relative w-full">
+            <div class="bg-stone-100 w-full flex h-11 items-center rounded-2xl px-4 gap-4">
+              <div class="relative size-4 shrink-0">
+                <img src="/assets/icons/search.svg" alt="Search" fill />
+              </div>
+              <input
+                type="text"
+                placeholder="Search"
+                class="bg-transparent grow h-full px-2 w-full"
+                #search="ngModel"
+                ngModel
+                (keyup.enter)="searchUser($event)"
+              />
+            </div>
+
+            @if (loading()) {
+              <div class="p-4 text-center">
+                <div class="loader"></div>
+              </div>
+            } @else {
+              <ul class="list-none p-2">
+                @for (user of users(); track $index) {
+                  <li
+                    (click)="userSelected.emit(user)"
+                    (click)="users.set([])"
+                    (click)="search.reset()"
+                    (click)="searchUserModal.close()"
+                    class="p-2 cursor-pointer hover:bg-gray-100 flex items-center gap-3 bg-white border-b border-dashed border-neutral-200"
+                  >
+                    <div>
+                      <div class="size-10 bg-primary rounded-lg text-white flex items-center justify-center uppercase">
+                        {{ user.first_name + ' ' + user.last_name | initials }}
+                      </div>
+                    </div>
+                    <div class="flex-grow truncate">
+                      <div class="font-semibold truncate">{{ user.first_name }} {{ user.last_name }}</div>
+                      <div class="font-light truncate">{{ user.email }}</div>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+            @if (nothingFound()) {
+              <p class="text-center py-2">Nothing found</p>
+            }
+          </div>
+        </section>
+      </div>
+    </div>
+  }
+</app-modal>

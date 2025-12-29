@@ -1,0 +1,163 @@
+<div class="relative w-full h-100">
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <!-- Classifications -->
+    <div class="mb-4">
+      <h3 class="text-gray-700 font-bold mb-2">Classifications</h3>
+      <div class="space-x-4" formArrayName="classifications">
+        @for (classification of config.bankClassifications(); track $index) {
+          <label [for]="'classification' + classification">
+            <input
+              [id]="'classification' + classification"
+              (change)="toggleCheckbox($event, form.controls.classifications)"
+              type="checkbox"
+              [value]="classification"
+              [checked]="(form.controls.classifications.value ?? []).includes(classification)"
+              class="mr-2"
+            />
+            {{ classification }}</label
+          >
+        }
+        <app-form-error-message [control]="form.controls.classifications" />
+      </div>
+    </div>
+
+    <!-- territories -->
+
+    <div class="mb-4">
+      <div>
+        <h3 class="text-gray-700 font-bold mb-2">Territories</h3>
+        <div>
+          @for (territory of config.supportedCountries() | keyvalue; track $index) {
+            <div class="flex flex-col md:flex-row justify-start items-center mb-1">
+              @let selected = territoriesSelected().includes(territory.key);
+              <label [for]="'territory' + territory.key" class="flex items-center">
+                <input
+                  [id]="'territory' + territory.key"
+                  (change)="toggleTerritory($event)"
+                  type="checkbox"
+                  [value]="territory.key"
+                  class="mr-2"
+                  [checked]="selected"
+                />
+                {{ territory.value }}</label
+              >
+              @if (selected) {
+                @let control = getTerritoryControl(territory.key);
+                <div class="flex-grow md:ml-4 mt-2 md:mt-0">
+                  <app-select-states [formControl]="control" [country]="territory.key" label="Excluded states" />
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <app-form-error-message [control]="form.controls.territories" />
+      </div>
+    </div>
+
+    <!-- Deposit minimun -->
+    <div class="mb-4">
+      <h3 class="text-gray-700 font-bold mb-2">Minimum Deposits</h3>
+      <div class="flex items-center">
+        <label for="toggle" class="flex items-center cursor-pointer">
+          <div class="relative">
+            <input
+              id="toggle"
+              type="checkbox"
+              class="sr-only"
+              [formControl]="form.controls.minimum_deposits_required"
+            />
+            <div
+              class="block w-10 h-6 rounded-full bg-gray-400 transition-colors"
+              [ngClass]="{
+                'bg-secondary': form.controls.minimum_deposits_required.value,
+              }"
+            ></div>
+            <div
+              class="dot absolute left-1 top-1 size-4 bg-white rounded-full transition-all"
+              [ngClass]="{
+                'translate-x-full': form.controls.minimum_deposits_required.value,
+                'translate-x-0': !form.controls.minimum_deposits_required.value,
+              }"
+            ></div>
+          </div>
+          <div class="ml-3">Minimum deposit required</div>
+        </label>
+      </div>
+      @if (form.controls.minimum_deposits_required.value) {
+        <div class="mt-4">
+          <div class="flex gap-4">
+            <app-custom-input label="Quantity" formControlName="deposits_minimum_transactions" />
+            <app-custom-input label="Amount" formControlName="deposits_minimum_amount" />
+          </div>
+        </div>
+
+        <div class="mt-6" formArrayName="by_industries">
+          @if (form.controls.by_industries.value.length > 0) {
+            @for (item of form.controls.by_industries.controls; track trackIndustry(item.value)) {
+              <div class="flex flex-wrap md:flex-row flex-col gap-4 mt-4" [formGroupName]="$index">
+                <app-select-industries
+                  formControlName="industry"
+                  label="Industry"
+                  [maxSelection]="1"
+                  class="flex-grow"
+                />
+
+                <app-custom-input label="Quantity" formControlName="minimum_transactions" class="md:w-20 w-full" />
+
+                <app-custom-input label="Amount" formControlName="minimum_amount" class="md:w-20 w-full" />
+
+                <button (click)="removeConstraintByIndustry($index)" type="button">
+                  <img src="/assets/icons/trash-icon.svg" alt="Delete" class="size-4" />
+                </button>
+              </div>
+            }
+          }
+          <app-form-error-message [control]="form.controls.by_industries" />
+          <div class="mt-4">
+            <button
+              type="button"
+              class="bg-gray-200 text-gray-600 py-1 px-3 rounded text-sm"
+              (click)="addConstraintByIndustry()"
+            >
+              Rule by industry +
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div>
+        <p>Products not allowed</p>
+        <app-checkbox-select
+          formControlName="blocked_products"
+          labelField="name"
+          valueField="id"
+          placeholder="Products not allowed"
+          [options]="blockedProducts()"
+        />
+      </div>
+      <div>
+        <p>Positions</p>
+        <app-checkbox-select formControlName="positions" placeholder="Positions" [options]="config.positions()" />
+      </div>
+    </div>
+
+    <div class="flex gap-4 justify-end mt-10 md:flex-row flex-col text-center max-md:w-full">
+      <button
+        class="items-center gap-2 bg-zinc-200 px-4 py-2 rounded-lg md:flex"
+        type="button"
+        (click)="bankUpdated.emit()"
+      >
+        Cancel
+      </button>
+      <button class="items-center gap-2 bg-secondary px-4 py-2 rounded-lg text-white md:flex" type="submit">
+        Continue
+        <div class="relative size-5 shrink-0 hidden md:block">
+          <img ngSrc="/assets/icons/arrow-right.svg" alt="Right" class="filter invert-[100%]" fill />
+        </div>
+      </button>
+    </div>
+  </form>
+</div>

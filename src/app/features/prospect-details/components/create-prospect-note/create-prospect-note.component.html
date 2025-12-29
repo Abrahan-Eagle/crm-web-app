@@ -1,0 +1,25 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div>
+    <textarea
+      id="nota-textarea"
+      rows="4"
+      formControlName="description"
+      class="w-full p-3 border-b-2 border-gray-300 focus:ring-teal-500 focus:border-teal-500 text-sm text-gray-700"
+      placeholder="Write here..."
+    ></textarea>
+    <app-form-error-message [control]="form.controls.description" />
+
+    <div class="text-sm text-gray-600 text-right mt-1">{{ form.controls.description.value?.length ?? 0 }}/1000</div>
+    <div class="mb-4">
+      <app-custom-input label="Follow up call" type="date" formControlName="follow_up_call" [min]="minDate()" />
+    </div>
+  </div>
+
+  <div>
+    @if (!loading()) {
+      <button class="bg-secondary px-4 py-2 rounded-lg text-white" type="submit">Add note</button>
+    } @else {
+      <div class="loader"></div>
+    }
+  </div>
+</form>

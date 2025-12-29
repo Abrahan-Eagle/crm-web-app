@@ -1,0 +1,149 @@
+<div class="relative">
+  <button class="flex items-center gap-2 bg-zinc-200 px-4 py-2 rounded-lg w-full" (click)="open.set(!open())">
+    <div class="relative size-5 shrink-0"><img ngSrc="/assets/icons/filters.svg" alt="Create" fill /></div>
+    Filters
+  </button>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    class="bg-white absolute shadow min-w-full p-4 right-0 overflow-clip z-20 *:mb-2 md:min-w-64 flex flex-col gap-2"
+    [ngClass]="{ hidden: !open() }"
+  >
+    @if (permissions.hasPermission(permission.READ_BANK_TYPE)) {
+      <div>
+        <h3 class="font-bold">Type</h3>
+        <hr class="mb-2" />
+        <label for="bank_type">
+          <select name="bank_type" formControlName="bank_type" id="bank_type" class="w-full">
+            <option value="">Select bank type</option>
+            <option value="lender">Lender</option>
+            <option value="broker">Broker</option>
+          </select></label
+        >
+      </div>
+    }
+
+    <div>
+      <h3 class="font-bold">Classifications</h3>
+      <hr class="mb-2" />
+
+      <div class="flex gap-2 flex-wrap">
+        @for (classification of classifications(); track $index) {
+          <div class="flex items-center gap-1">
+            <input
+              [id]="'classification_' + classification"
+              (change)="toggleCheckbox($event, form.controls.classifications)"
+              type="checkbox"
+              [value]="classification"
+              [checked]="false"
+              class="size-4 bg-gray-100 border-gray-300 rounded"
+            />
+            <label [for]="'classification_' + classification" class="text-sm font-medium text-gray-900">{{
+              classification
+            }}</label>
+          </div>
+        }
+      </div>
+    </div>
+    <div>
+      <h3 class="font-bold">Countries</h3>
+      <hr class="mb-2" />
+      <div class="flex gap-2 flex-wrap">
+        @for (item of countries() | keyvalue; track $index) {
+          <div class="flex items-center gap-1">
+            <input
+              [id]="'country_' + item.key"
+              (change)="toggleCheckbox($event, form.controls.countries)"
+              type="checkbox"
+              [value]="item.key"
+              [checked]="false"
+              class="size-4 bg-gray-100 border-gray-300 rounded"
+            />
+            <label [for]="'country_' + item.key" class="text-sm font-medium text-gray-900">{{ item.value }}</label>
+          </div>
+        }
+      </div>
+    </div>
+    <div>
+      <h3 class="font-bold">Territories</h3>
+      <hr class="mb-2" />
+      <div class="flex gap-2 flex-wrap">
+        @for (item of countries() | keyvalue; track $index) {
+          <div class="flex items-center gap-1">
+            <input
+              [id]="'territory_' + item.key"
+              (change)="toggleCheckbox($event, form.controls.territories)"
+              type="checkbox"
+              [value]="item.key"
+              [checked]="false"
+              class="size-4 bg-gray-100 border-gray-300 rounded"
+            />
+            <label [for]="'territory_' + item.key" class="text-sm font-medium text-gray-900">{{ item.value }}</label>
+          </div>
+        }
+      </div>
+    </div>
+    <div>
+      <h3 class="font-bold">Status</h3>
+      <hr class="mb-2" />
+      <label for="status">
+        <select name="status" formControlName="status" id="status" class="w-full">
+          <option value="">Select status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select></label
+      >
+    </div>
+
+    <div>
+      <h3 class="font-bold">ID Types</h3>
+      <hr class="mb-2" />
+      <div class="flex gap-2 flex-wrap">
+        <div class="flex items-center gap-1">
+          <input
+            id="identification_type_SSN"
+            (change)="toggleCheckbox($event, form.controls.identification_types)"
+            type="checkbox"
+            value="SSN"
+            [checked]="form.controls.identification_types.value?.includes('SSN')"
+            class="size-4 bg-gray-100 border-gray-300 rounded"
+          />
+          <label for="identification_type_SSN" class="text-sm font-medium text-gray-900">SSN</label>
+        </div>
+        <div class="flex items-center gap-1">
+          <input
+            id="identification_type_ITIN"
+            (change)="toggleCheckbox($event, form.controls.identification_types)"
+            type="checkbox"
+            value="ITIN"
+            [checked]="form.controls.identification_types.value?.includes('ITIN')"
+            class="size-4 bg-gray-100 border-gray-300 rounded"
+          />
+          <label for="identification_type_ITIN" class="text-sm font-medium text-gray-900">ITIN</label>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <hr class="mb-2" />
+      <label class="inline-flex items-center cursor-pointer" for="blacklisted">
+        <input type="checkbox" value="" class="sr-only peer" formControlName="blacklisted" id="blacklisted" />
+        <div
+          class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"
+        ></div>
+        <span class="ms-3 text-sm font-medium text-gray-900">Blacklisted banks</span>
+      </label>
+    </div>
+    <div>
+      <button class="w-full px-2 py-1 bg-primary text-white rounded-md mb-1" type="submit">Search</button>
+      <button
+        class="w-full px-2 py-1 outline outline-primary outline-1 text-outline rounded-md"
+        type="reset"
+        (click)="submit()"
+      >
+        Clear
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,73 @@
+<div>
+  @defer {
+    <div [formGroup]="formService.form()">
+      <div formArrayName="documents" class="grid grid-cols-3 gap-4">
+        @for (file of formService.form().controls.documents.controls; track $index) {
+          @if (!file.controls.file.value) {
+            <app-file-picker
+              [manualHandled]="true"
+              [maxFiles]="1"
+              [hideDescription]="true"
+              [validExtensions]="['.jpg', '.jpeg', '.png', '.pdf']"
+              [maxSizeInBytes]="config.companyFileMaxFileSize"
+              (selectFiles)="setFile($event, $index)"
+              [fileTypes]="config.companyFileTypes()"
+              [withType]="true"
+            />
+          } @else {
+            @let localFile = file.controls.file.value;
+            @let type = file.controls.type.value;
+            <div>
+              <app-file-handler
+                [name]="localFile.name"
+                [type]="localFile.type"
+                [sizeInKb]="localFile.size"
+                [source]="localFile"
+                (removeFile)="removeFile($index)"
+              />
+              <p class="text-neutral-400 text-sm">{{ config.companyFileTypes()[type!] }}</p>
+            </div>
+          }
+        }
+      </div>
+      <app-form-error-message [control]="formService.form().controls.documents" />
+    </div>
+  }
+</div>
+
+<button
+  type="button"
+  class="px-2 text-sky-600 flex items-center justify-center border border-sky-600 rounded-md text-sm mt-4"
+  (click)="addFile()"
+>
+  Add document
+</button>
+
+@if (addDocumentMessage()) {
+  <p class="text-gray-500 text-sm mt-4">
+    {{ addDocumentMessage() }}
+  </p>
+}
+
+<div class="flex gap-4 justify-end mt-10 md:flex-row flex-col text-center max-md:w-full">
+  <button
+    class="items-center gap-2 bg-zinc-200 px-4 py-2 rounded-lg md:flex"
+    type="button"
+    (click)="formService.prev()"
+  >
+    <div class="relative size-5 shrink-0 hidden md:block">
+      <img ngSrc="/assets/icons/arrow-left.svg" alt="Back" fill />
+    </div>
+    Cancel
+  </button>
+  <button
+    class="items-center gap-2 bg-secondary px-4 py-2 rounded-lg text-white md:flex"
+    type="button"
+    (click)="next()"
+  >
+    Continue
+    <div class="relative size-5 shrink-0 hidden md:block">
+      <img ngSrc="/assets/icons/arrow-right.svg" alt="Right" class="filter invert-[100%]" fill />
+    </div>
+  </button>
+</div>

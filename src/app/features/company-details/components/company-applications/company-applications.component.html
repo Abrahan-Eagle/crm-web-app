@@ -1,0 +1,74 @@
+@if (applications() && applications()!.data!.length > 0) {
+  <div class="bg-white rounded-lg shadow p-4 py-6">
+    <nav>
+      <h2 class="font-bold">Applications</h2>
+      <span class="text-sm text-neutral-400">The applications shown correspond to the current tenant.</span>
+    </nav>
+    <hr class="my-4" />
+    <section>
+      <div class="relative overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="*:font-normal *:text-neutral-400 *:px-6 *:py-3">
+              <th scope="col">Creation</th>
+              <th scope="col">Product</th>
+              <th scope="col">Quantity</th>
+              <th scope="col">Period</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          @if (loading()) {
+            <tbody>
+              <tr>
+                <td colspan="100%">
+                  <div class="text-center py-9">
+                    <div class="loader"></div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          } @else {
+            <tbody>
+              @for (application of applications()!.data; track $index) {
+                <tr
+                  class="bg-white border-b border-dashed border-neutral-200 *:px-6 *:py-4 *:whitespace-nowrap [&>th]:ps-0"
+                >
+                  <td>
+                    <a [routerLink]="['/', 'applications', application.id]" target="_blank">
+                      {{ application.created_at | customDate }}
+                      @if (application.created_by) {
+                        <br />by {{ application.created_by.first_name }} {{ application.created_by.last_name }}
+                      }
+                    </a>
+                  </td>
+                  <td>{{ application.loan_amount | currency }}</td>
+                  <td>
+                    {{ application.period }}
+                  </td>
+                  <td>
+                    {{ config.productType()[application.product] }}
+                  </td>
+                  <td>
+                    <p
+                      class="text-center rounded-lg inline-block px-3 py-1 text-white"
+                      [ngClass]="config.statusClasses()[application.status]"
+                    >
+                      {{ config.applicationStatus()[application.status] }}
+                    </p>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          }
+        </table>
+      </div>
+      @defer {
+        @if (applications()?.pagination) {
+          <div class="mt-4">
+            <app-pagination />
+          </div>
+        }
+      }
+    </section>
+  </div>
+}

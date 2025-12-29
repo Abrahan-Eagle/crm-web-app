@@ -1,0 +1,94 @@
+<section class="p-4">
+  <div class="flex gap-2 mb-4">
+    <button
+      type="button"
+      [class]="activeTab() === 'company' ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700'"
+      class="px-4 py-2 rounded-lg font-medium"
+      (click)="setActiveTab('company')"
+    >
+      Company
+    </button>
+    <button
+      type="button"
+      [class]="activeTab() === 'contact' ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700'"
+      class="px-4 py-2 rounded-lg font-medium"
+      (click)="setActiveTab('contact')"
+    >
+      Contact
+    </button>
+  </div>
+
+  <div class="relative w-full mb-4">
+    <div class="bg-stone-100 w-full flex h-11 items-center rounded-2xl px-4 gap-4">
+      <div class="relative size-4 shrink-0">
+        <img src="/assets/icons/search.svg" alt="Search" fill />
+      </div>
+      <input
+        type="text"
+        placeholder="Search"
+        class="bg-transparent grow h-full px-2 w-full"
+        [(ngModel)]="searchTerm"
+        (keyup.enter)="this.searchService.updateQuery(searchTerm)"
+      />
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="p-4 text-center">
+      <div class="loader"></div>
+    </div>
+  } @else {
+    <div class="max-h-96 overflow-y-auto">
+      @for (entity of entities(); track entity.id) {
+        <div class="mb-4 border border-gray-200 rounded-lg p-3">
+          <div class="flex items-center gap-3 mb-3 cursor-pointer" (click)="toggleExpanded(entity.id)">
+            <div class="size-6 flex items-center justify-center">
+              @let isExpanded = expandedEntities().has(entity.id);
+              @if (isExpanded) {
+                <svg class="size-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z" />
+                </svg>
+              } @else {
+                <svg class="size-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
+                </svg>
+              }
+            </div>
+            <div class="size-10 bg-primary rounded-lg text-white flex items-center justify-center uppercase text-sm">
+              {{ entity.name | initials }}
+            </div>
+            <div class="flex-grow">
+              <div class="font-semibold">{{ entity.name }}</div>
+              <div class="text-sm text-gray-500">{{ entity.type | titlecase }}</div>
+            </div>
+          </div>
+
+          @if (isExpanded) {
+            <app-attachment-viewer
+              [entity]="entity"
+              [selectedDocuments]="selectedDocumentsKeys()"
+              (documentSelected)="onDocumentSelected($event)"
+            />
+          }
+        </div>
+      }
+    </div>
+    <div class="flex gap-4 justify-end md:flex-row flex-col text-center max-md:w-full mt-4">
+      <button type="button" class="items-center gap-2 bg-zinc-200 px-4 py-2 rounded-lg" (click)="emitSelection(false)">
+        Cancel
+      </button>
+      <button
+        type="button"
+        [disabled]="!selectedDocumentsKeys().length"
+        class="bg-secondary px-4 py-2 rounded-lg text-white disabled:opacity-50"
+        (click)="emitSelection()"
+      >
+        Select
+      </button>
+    </div>
+  }
+
+  @if (nothingFound()) {
+    <p class="text-center py-4 text-gray-500">No {{ activeTab() }}s found</p>
+  }
+</section>

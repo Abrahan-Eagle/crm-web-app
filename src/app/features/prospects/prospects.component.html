@@ -1,0 +1,116 @@
+<div class="p-7">
+  <div class="rounded-2xl shadow bg-white p-6">
+    <nav class="flex gap-4 justify-between items-center flex-wrap md:flex-row flex-col">
+      <!-- Search -->
+      <div class="bg-stone-100 w-full md:max-w-96 flex h-11 items-center rounded-2xl ps-4 gap-4">
+        <label for="searchProspect" class="relative size-4 shrink-0 cursor-pointer" (click)="updateSearch($event)">
+          <img ngSrc="/assets/icons/search.svg" alt="Search" fill />
+        </label>
+        <input
+          type="text"
+          id="searchProspect"
+          (keyup.enter)="updateSearch($event)"
+          placeholder="search"
+          class="bg-transparent grow h-full px-2"
+        />
+      </div>
+    </nav>
+    <hr class="my-4" />
+    <section>
+      <div class="relative overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="*:font-normal *:text-neutral-400 *:px-6 *:py-3">
+              <th scope="col">Name</th>
+              <th scope="col">Company</th>
+              <th scope="col">Last call</th>
+              <th scope="col">Follow Up</th>
+              <th scope="col">Notes</th>
+            </tr>
+          </thead>
+          @if (loading()) {
+            <tbody>
+              <td colspan="100%">
+                <div class="text-center py-9">
+                  <div class="loader"></div>
+                </div>
+              </td>
+            </tbody>
+          } @else {
+            @if (prospects() && prospects()!.data!.length > 0) {
+              <tbody>
+                @for (prospect of prospects()?.data; track $index) {
+                  <tr
+                    class="bg-white border-b border-dashed border-neutral-200 *:px-6 *:py-4 *:whitespace-nowrap [&>th]:ps-0 cursor-pointer"
+                    (click)="selected.set(prospect); prospectView.open()"
+                  >
+                    <th scope="row" class="font-normal">{{ prospect.name }}</th>
+                    <td>
+                      {{ prospect.company }}
+                    </td>
+
+                    <td>
+                      @if (prospect.last_call) {
+                        {{ prospect.last_call | customDate }}
+                      } @else {
+                        never
+                      }
+                    </td>
+                    <td>
+                      @if (prospect.follow_up_call) {
+                        {{ prospect.follow_up_call | customDate }}
+                      }
+                    </td>
+                    <td>
+                      {{ prospect.note_count }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            } @else {
+              @defer {
+                <tbody>
+                  <td colspan="100%">
+                    <app-prospects-not-found />
+                  </td>
+                </tbody>
+              }
+            }
+          }
+        </table>
+      </div>
+
+      @defer {
+        @if (prospects()?.pagination) {
+          <div class="mt-4">
+            <app-pagination />
+          </div>
+        }
+      }
+    </section>
+  </div>
+</div>
+
+<app-modal #prospectView (closed)="selected.set(null)" (closed)="onSearch()">
+  @if (selected(); as prospect) {
+    <div class="flex items-center justify-center">
+      <div class="bg-white w-full max-w-4xl rounded-lg overflow-auto">
+        <header class="p-4 flex justify-between items-center border-b border-gray-300">
+          <h2 class="font-bold text-xl truncate">{{ prospect.name }}</h2>
+          <button (click)="prospectView.close()" class="shrink-0">
+            <img
+              src="/assets/icons/close-icon.svg"
+              width="14"
+              height="18"
+              alt="close"
+              style="filter: invert(64%) sepia(1%) saturate(370%) hue-rotate(314deg) brightness(94%) contrast(91%)"
+            />
+          </button>
+        </header>
+        <div class="p-2">
+          <app-prospect-details [leadId]="id!" [prospectId]="prospect!.id" />
+        </div>
+      </div>
+    </div>
+  }
+</app-modal>

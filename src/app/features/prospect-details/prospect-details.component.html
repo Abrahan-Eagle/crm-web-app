@@ -1,0 +1,37 @@
+<section>
+  @if (loading()) {
+    <div class="text-center p-6">
+      <div class="loader"></div>
+    </div>
+  } @else {
+    @if (prospect(); as prospect) {
+      <div class="text-center">
+        <p>{{ prospect.email }}</p>
+        <p>{{ prospect.phone | formatPhone }}</p>
+        <p>
+          @if (prospect.follow_up_call) {
+            {{ prospect.follow_up_call | customDate }}
+          }
+        </p>
+      </div>
+      <hr class="border-gray-300 mb-2 mt-2" />
+      <div class="grid grid-cols-2">
+        <div class="p-2">
+          <app-prospect-activity />
+        </div>
+        <div class="p-2">
+          <app-create-prospect-note />
+        </div>
+      </div>
+      @if (!calling()) {
+        <button (click)="requestACall()" class="bg-secondary px-4 py-2 rounded-lg text-white w-full mt-5" type="button">
+          Request a call
+        </button>
+      } @else {
+        <div class="text-center py-4">
+          <div class="loader"></div>
+        </div>
+      }
+    }
+  }
+</section>

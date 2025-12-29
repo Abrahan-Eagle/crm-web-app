@@ -1,0 +1,194 @@
+@if (notification.status === 'REJECTED') {
+  <div class="bg-red-300 p-2 mt-4 rounded border border-red-500">
+    <p>
+      <strong>{{ config.rejectedReasons()[notification.reject_reason] }}</strong>
+      @if (notification.reject_reason_description) {
+        <span>: {{ notification.reject_reason_description }}</span>
+      }
+    </p>
+  </div>
+}
+
+<nav class="flex gap-4 justify-between items-center flex-wrap md:flex-row flex-col mt-4">
+  <div>
+    <h2 class="text-gray-500 font-bold">{{ notification.bank.name }}</h2>
+    <p class="text-gray-500 text-sm">{{ notification.created_at | date: 'MMM d, y, h:mm a' }}</p>
+  </div>
+  @if (permissions.hasPermission(permission.UPDATE_APPLICATION)) {
+    <div class="flex gap-2 flex-col lg:flex-row">
+      @if (notification.status !== 'REJECTED') {
+        @defer (when !details.isBlocked() && allowCreate()) {
+          <div class="max-md:w-full">
+            <button
+              class="flex items-center gap-2 bg-secondary text-white px-4 py-2 rounded-lg w-full justify-center"
+              (click)="createOfferModal.open()"
+            >
+              <div class="relative size-5 shrink-0"><img ngSrc="/assets/icons/add.svg" alt="Create" fill /></div>
+              Create
+            </button>
+          </div>
+        }
+      }
+
+      @if (notification.status === 'REJECTED') {
+        <button class="bg-secondary text-white px-4 py-2 rounded-lg w-full" (click)="restoreOffer.open()">
+          Restore
+        </button>
+      }
+    </div>
+  }
+</nav>
+
+<hr class="my-4" />
+<section>
+  @if (loading()) {
+    <div class="h-full text-center flex justify-center items-center">
+      <div class="loader"></div>
+    </div>
+  } @else {
+    <div class="relative overflow-x-auto">
+      <table class="w-full text-center">
+        <thead>
+          <tr class="*:font-normal *:text-neutral-400 *:px-2 *:py-1">
+            <th scope="col"></th>
+            <th scope="col"></th>
+            <th scope="col">Recurrence</th>
+            <th scope="col">Factor rate</th>
+            @if (permissions.hasPermission(permission.VIEW_OFFER_COMMISSION)) {
+              <th scope="col">Commission</th>
+            }
+            <th scope="col">Position</th>
+            <th scope="col">Points</th>
+            <th scope="col">Duration</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (offer of notification.offers; track $index) {
+            <tr
+              class="border-b border-dashed border-neutral-200 *:px-1 *:py-1 [&>th]:ps-0"
+              [ngClass]="{ 'bg-emerald-100': offer.status === 'ACCEPTED' }"
+            >
+              <td>
+                <p class="text-sm text-gray-500">{{ offer.created_at | date: 'MMM d, y, h:mm a' }}</p>
+              </td>
+              <td>
+                <p class="text-sm text-gray-500">Amount</p>
+
+                {{ offer.purchased_amount | currency }}
+
+                @if (permissions.hasPermission(permission.VIEW_OFFER_COMMISSION)) {
+                  <p class="text-sm text-gray-500 mt-1">Price</p>
+                  {{ offer.purchased_price | currency }}
+                }
+              </td>
+
+              <td>
+                {{ offer.purchased_price / offer.payment_plan_duration | currency }}
+                <p class="text-sm text-gray-500">{{ config.paymentPlans()[offer.payment_plan] }}</p>
+              </td>
+              <td>
+                @if (offer.factor_rate) {
+                  {{ offer.factor_rate }}%
+                }
+              </td>
+
+              @if (permissions.hasPermission(permission.VIEW_OFFER_COMMISSION)) {
+                <td>{{ offer.commission | currency }}</td>
+              }
+              <td>{{ offer.position }}</td>
+              <td>{{ offer.points }}</td>
+              <td>{{ offer.payment_plan_duration }}</td>
+              <td class="flex gap-4 justify-center items-center">
+                @if (notification.status !== 'REJECTED' && !details.isBlocked()) {
+                  @if (offer.status !== 'ACCEPTED') {
+                    <button
+                      class="text-center rounded-lg px-4 py-2 text-white bg-emerald-500 hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                      (click)="acceptOffer(offer.id)"
+                    >
+                      Accept
+                    </button>
+                  } @else {
+                    <button
+                      class="text-center rounded-lg px-4 py-2 text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
+                      (click)="cancelOffer(offer.id)"
+                    >
+                      Cancel
+                    </button>
+                  }
+
+                  <button (click)="editOfferModal.open(); viewing.set(offer)">
+                    <img src="/assets/icons/edit.svg" alt="Edit" class="size-8" />
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+<app-modal #editOfferModal>
+  @defer (when permissions.hasPermission(permission.UPDATE_APPLICATION)) {
+    <div class="h-full flex items-center">
+      <div class="bg-white w-full rounded-lg overflow-auto max-h-full">
+        <header class="p-4 flex justify-between items-center border border-b border-gray-300">
+          <h2 class="font-bold text-xl truncate">Edit Offer</h2>
+          <button (click)="editOfferModal.close()" class="shrink-0">
+            <img ngSrc="/assets/icons/close-icon.svg" width="14" height="18" alt="close" class="opacity-50" />
+          </button>
+        </header>
+        <section class="p-4">
+          @if (viewing(); as offer) {
+            <app-update-offer
+              [notificationId]="notification.id"
+              [offer]="offer"
+              (offerUpdated)="editOfferModal.close(); viewing.set(null)"
+              (offerUpdated)="$event && updateOffer($event)"
+            />
+          }
+        </section>
+      </div>
+    </div>
+  }
+</app-modal>
+<app-modal #createOfferModal>
+  @defer (when permissions.hasPermission(permission.UPDATE_APPLICATION)) {
+    <div class="h-full flex items-center">
+      <div class="bg-white w-full rounded-lg overflow-auto max-h-full">
+        <header class="p-4 flex justify-between items-center border border-b border-gray-300">
+          <h2 class="font-bold text-xl truncate">Create Offer</h2>
+          <button (click)="createOfferModal.close()" class="shrink-0">
+            <img ngSrc="/assets/icons/close-icon.svg" width="14" height="18" alt="close" class="opacity-50" />
+          </button>
+        </header>
+        <section class="p-4">
+          <app-create-offer
+            (offer)="createOfferModal.close()"
+            (offer)="$event && addOffer($event)"
+            [notificationId]="notification.id"
+          />
+        </section>
+      </div>
+    </div>
+  }
+</app-modal>
+<app-modal #restoreOffer>
+  @defer (when permissions.hasPermission(permission.UPDATE_APPLICATION)) {
+    <div class="h-full flex items-center">
+      <div class="bg-white w-full rounded-lg overflow-auto max-h-full max-w-lg mx-auto">
+        <header class="p-4 flex justify-between items-center border border-b border-gray-300">
+          <h2 class="font-bold text-xl truncate">Restore Offer</h2>
+          <button (click)="restoreOffer.close()" class="shrink-0">
+            <img ngSrc="/assets/icons/close-icon.svg" width="14" height="18" alt="close" class="opacity-50" />
+          </button>
+        </header>
+        <section class="p-4">
+          <app-restore-offer [notificationId]="notification.id" (restored)="restoreOffer.close(); restored.emit()" />
+        </section>
+      </div>
+    </div>
+  }
+</app-modal>

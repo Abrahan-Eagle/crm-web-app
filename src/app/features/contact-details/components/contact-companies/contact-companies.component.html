@@ -1,0 +1,43 @@
+@if (loading()) {
+  <div class="h-full text-center flex justify-center items-center">
+    <div class="loader"></div>
+  </div>
+} @else {
+  @if (contactCompanies()!.data.length > 0) {
+    <h2 class="text-xl font-bold mb-4">Companies</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-blue-50">
+      @for (company  of contactCompanies()!.data; track $index) {
+        <a [routerLink]="['/', 'companies', company.id]" target="_blank">
+        <div class="bg-white shadow-md rounded-lg p-6 text-center">
+          <div class="flex items-center justify-center size-12 bg-blue-950 rounded-full mx-auto mb-4">
+            <span class="text-lg font-semibold text-white">
+              {{ company .name | initials }}
+            </span>
+          </div>
+          <h3 class="text-lg font-bold text-gray-800 truncate" [title]="company .name">
+            {{ company .name }}
+          </h3>
+          <p class="text-gray-500 text-sm mt-2">
+            {{ company .dba }}
+          </p>
+          @for (member of company.members; track $index) {
+            <p class="text-3xl font-semibold text-gray-800 my-4">{{ member.percentage }}%</p>
+
+            <p class="text-gray-500 text-sm truncate">
+              {{ member.title }}
+            </p>
+            <small class="text-xs truncate text-gray-800">Member since: {{ member.member_since | customDate }}</small>
+          }
+        </div>
+      </a>
+      }
+    </div>
+  }
+  @defer {
+    @if (contactCompanies()?.pagination) {
+      <div class="mt-4">
+        <app-pagination />
+      </div>
+    }
+  }
+}

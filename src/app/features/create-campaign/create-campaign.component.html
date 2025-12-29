@@ -1,0 +1,64 @@
+<div class="p-3">
+  <div class="bg-white p-6 rounded-lg shadow-lg">
+    <h2 class="text-2xl font-bold mb-6 text-center">Create Campaign</h2>
+    <hr class="mb-4" />
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="mb-4">
+        <app-custom-input formControlName="sender" placeholder="info@businessmarketfindersllc.com" label="Sender" />
+      </div>
+      <div class="mb-4">
+        <app-custom-input formControlName="subject" placeholder="" label="subject" />
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <h3 class="mb-2 text-lg font-semibold">Message</h3>
+          <div class="NgxEditor__Wrapper">
+            <ngx-editor-menu [editor]="editor" />
+            <ngx-editor [editor]="editor" formControlName="message" placeholder="Type here..." />
+            <app-form-error-message [control]="form.controls.message" />
+          </div>
+        </div>
+
+        <div>
+          <h3 class="mb-2 text-lg font-semibold">File</h3>
+          <app-file-picker
+            [maxFiles]="1"
+            [validExtensions]="['.xlsx']"
+            (selectFiles)="addFile($event)"
+            [manualHandled]="true"
+            [maxSizeInBytes]="3e7"
+          />
+          @if (form.controls.file.value) {
+            <div class="flex flex-col gap-3">
+              @let file = form.controls.file.value!;
+              @defer {
+                <app-file-handler
+                  [name]="file.name"
+                  [type]="file.type"
+                  [sizeInKb]="file.size"
+                  (removeFile)="form.controls.file.reset()"
+                  [withType]="false"
+                  [source]="file"
+                />
+              }
+            </div>
+          }
+
+          <app-form-error-message [control]="form.controls.file" />
+        </div>
+      </div>
+
+      @if (!loading()) {
+        <button class="items-center gap-2 bg-secondary px-4 py-2 rounded-lg text-white w-full mt-4" type="submit">
+          Create
+        </button>
+      } @else {
+        <div class="flex justify-center items-center h-full mt-4">
+          <div class="loader"></div>
+        </div>
+      }
+    </form>
+  </div>
+</div>

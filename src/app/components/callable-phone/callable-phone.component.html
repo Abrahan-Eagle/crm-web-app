@@ -1,0 +1,10 @@
+@if (permissions.hasPermission(permission.REQUEST_CALL)) {
+  <button class="flex items-center gap-2" (click)="callInfo && voip.requestACall(callInfo)">
+    <div class="bg-secondary/40 rounded-lg size-6 flex items-center justify-center shrink-0">
+      <img src="/assets/icons/phone.svg" alt="Call" class="size-3" />
+    </div>
+    <div>{{ callInfo?.phone_hint }}</div>
+  </button>
+} @else {
+  <div>{{ callInfo?.phone_hint }}</div>
+}

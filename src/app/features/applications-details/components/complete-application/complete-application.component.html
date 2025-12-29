@@ -1,0 +1,12 @@
+@if (loading()) {
+  <div
+    class="bg-green-600 text-white rounded-lg size-8 flex items-center justify-center cursor-pointer"
+    (click)="completeApplication()"
+  >
+    <img src="assets/icons/complete-app.svg" alt="link" class="size-4" />
+  </div>
+} @else {
+  <div class="h-full text-center flex justify-center items-center">
+    <div class="loader"></div>
+  </div>
+}

@@ -1,0 +1,68 @@
+<div [formGroup]="form">
+  <div class="mb-4">
+    @if (!form.controls.file.value) {
+      <app-file-picker
+        [manualHandled]="true"
+        [maxFiles]="1"
+        (selectFiles)="addFile($event)"
+        [hideDescription]="true"
+        [validExtensions]="['.pdf']"
+      />
+      <div [formGroup]="form">
+        <app-form-error-message [control]="form.controls.file" />
+      </div>
+    } @else {
+      @let file = form.controls.file.value;
+      <app-file-handler
+        [name]="file.name"
+        [type]="file.type"
+        [sizeInKb]="file.size"
+        (removeFile)="removeFile()"
+        [source]="file"
+      />
+    }
+  </div>
+  @if (withAmount()) {
+    <div class="mb-4">
+      <app-custom-input
+        label="Amount"
+        formControlName="amount"
+        type="number"
+        pattern="^\d*(\.\d{0,2})?$"
+        min="0"
+        max="1000000"
+        step="1000"
+        prefix="$"
+        [id]="'amount' + seed"
+      />
+    </div>
+  }
+  @if (withNegativeDays()) {
+    <div class="mb-4">
+      <app-custom-input
+        label="Negative days"
+        formControlName="negative_days"
+        type="number"
+        pattern="^\d+$"
+        min="0"
+        max="31"
+        step="1"
+        [id]="'negative_days' + seed"
+      />
+    </div>
+  }
+  @if (withTransactions()) {
+    <div class="mb-4">
+      <app-custom-input
+        label="Transactions"
+        formControlName="transactions"
+        type="number"
+        pattern="^\d+$"
+        min="0"
+        max="500"
+        step="1"
+        [id]="'transactions' + seed"
+      />
+    </div>
+  }
+</div>

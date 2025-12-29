@@ -1,0 +1,26 @@
+<div class="py-4">
+  @if (updating()) {
+    <div class="loader"></div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="updatePosition()" class="mb-4">
+      <div class="flex gap-2 items-center">
+        <div class="relative">
+          <app-custom-select
+            [options]="config.positions()"
+            formControlName="position"
+            placeholder="Select position..."
+            label="Set Position"
+          />
+        </div>
+
+        <button
+          type="submit"
+          [disabled]="!form.valid"
+          class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Update
+        </button>
+      </div>
+    </form>
+  }
+</div>

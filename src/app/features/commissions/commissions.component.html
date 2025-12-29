@@ -1,0 +1,147 @@
+<div class="p-7">
+  <div class="rounded-2xl shadow bg-white p-6">
+    <nav class="flex gap-4 justify-between items-center flex-wrap md:flex-row flex-col">
+      <!-- Search -->
+      <div class="bg-stone-100 w-full md:max-w-96 flex h-11 items-center rounded-2xl ps-4 gap-4">
+        <label
+          for="searchCompany"
+          class="relative size-4 shrink-0 cursor-pointer"
+          (click)="this.searchService.updateQuery(search)"
+          ><img ngSrc="/assets/icons/search.svg" alt="Search" fill
+        /></label>
+        <input
+          type="text"
+          [(ngModel)]="search"
+          id="searchCompany"
+          placeholder="search"
+          class="bg-transparent grow h-full px-2"
+          (keyup.enter)="this.searchService.updateQuery(search)"
+        />
+      </div>
+
+      <div class="max-md:w-full">
+        <div class="flex items-center gap-5 px-4 py-2">
+          <app-custom-input label="From" type="date" [(ngModel)]="fromDate" />
+
+          <app-custom-input label="To" type="date" [(ngModel)]="toDate" />
+        </div>
+      </div>
+    </nav>
+
+    <hr class="my-4" />
+    <section>
+      <div class="relative overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="*:font-normal *:text-neutral-400 *:px-6 *:py-3">
+              <th scope="col">Company</th>
+              <th scope="col">Bank</th>
+              <th scope="col">Commission</th>
+              <th scope="col">PSF</th>
+              <th scope="col">Status</th>
+              <th scope="col"></th>
+            </tr>
+          </thead>
+          @if (loading()) {
+            <tbody>
+              <td colspan="100%">
+                <div class="text-center py-9">
+                  <div class="loader"></div>
+                </div>
+              </td>
+            </tbody>
+          } @else {
+            @if (commissions() && commissions()!.data!.length > 0) {
+              <tbody>
+                @for (commission of commissions()?.data; track commission.id) {
+                  <tr
+                    class="bg-white border-b border-dashed border-neutral-200 *:px-6 *:py-4 *:whitespace-nowrap [&>th]:ps-0"
+                  >
+                    <th
+                      scope="row"
+                      class="font-normal"
+                      [routerLink]="[commission.id, commission.status === 'DRAFT' ? 'edit' : 'details']"
+                    >
+                      <a [routerLink]="[commission.id, commission.status === 'DRAFT' ? 'edit' : 'details']">
+                        <div class="flex gap-4 items-center">
+                          <div
+                            class="size-10 bg-primary rounded-lg text-white flex items-center justify-center uppercase"
+                          >
+                            {{ commission.company.name | initials }}
+                          </div>
+                          <div>
+                            <p class="font-bold">{{ commission.company.name }}</p>
+
+                            <div class="flex items-center gap-2">
+                              <div class="relative size-5">
+                                <img
+                                  [ngSrc]="
+                                    'https://raw.githubusercontent.com/hampusborgos/country-flags/main/svg/' +
+                                    commission.company.country_iso_code_2.toLowerCase() +
+                                    '.svg'
+                                  "
+                                  [alt]="commission.company.country_iso_code_2"
+                                  fill
+                                />
+                              </div>
+                              <p>
+                                @if (commission.company.dba) {
+                                  <p>{{ commission.company.dba }}</p>
+                                }
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </a>
+                    </th>
+                    <th
+                      scope="row"
+                      class="font-normal"
+                      [routerLink]="[commission.id, commission.status === 'DRAFT' ? 'edit' : 'details']"
+                    >
+                      <p class="font-bold">{{ commission.bank.name }}</p>
+                    </th>
+
+                    <td>
+                      <p>{{ commission.commission | currency }}</p>
+                    </td>
+                    <td>
+                      <p>{{ commission.psf | currency }}</p>
+                    </td>
+                    <td>
+                      <p
+                        class="text-white text-center rounded-lg first-letter:capitalize inline-block px-3 py-1 min-w-24"
+                        [ngClass]="commission.status === 'DRAFT' ? 'bg-red-500' : 'bg-emerald-500'"
+                      >
+                        {{ config.commissionStatus()[commission.status] }}
+                      </p>
+                    </td>
+                    <td>
+                      <p>{{ commission.created_at | customDate }}</p>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            } @else {
+              @defer {
+                <tbody>
+                  <td colspan="100%">
+                    <app-commission-not-found />
+                  </td>
+                </tbody>
+              }
+            }
+          }
+        </table>
+      </div>
+
+      @defer {
+        @if (commissions()?.pagination) {
+          <div class="mt-4">
+            <app-pagination />
+          </div>
+        }
+      }
+    </section>
+  </div>
+</div>

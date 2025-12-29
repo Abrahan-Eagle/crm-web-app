@@ -1,0 +1,9 @@
+@if (loading()) {
+  <div class="text-center flex items-center h-full justify-center">
+    <div class="loader"></div>
+  </div>
+} @else {
+  @if (iframe(); as iframe) {
+    <iframe [src]="iframe | safe: 'resourceUrl'" frameBorder="0" height="100%" width="100%" allowTransparency></iframe>
+  }
+}

@@ -1,0 +1,15 @@
+<p>Are you sure you want to {{ campaign().status === 'STOPPED' ? 'start' : 'stop' }} this campaign?</p>
+<div class="flex gap-4 justify-end mt-6 md:flex-row flex-col text-center max-md:w-full">
+  @if (!loading()) {
+    <button
+      class="items-center gap-2 bg-zinc-200 px-4 py-2 rounded-lg md:flex"
+      type="button"
+      (click)="campaignUpdated.emit(false)"
+    >
+      Cancel
+    </button>
+    <button class="bg-secondary px-4 py-2 rounded-lg text-white" type="button" (click)="toggle()">Proceed</button>
+  } @else {
+    <div class="loader"></div>
+  }
+</div>

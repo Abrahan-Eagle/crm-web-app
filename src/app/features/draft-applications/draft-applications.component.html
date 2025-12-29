@@ -1,0 +1,186 @@
+<div class="p-7">
+  <div class="rounded-2xl shadow bg-white p-6">
+    <nav class="flex gap-4 justify-between items-center flex-wrap md:flex-row flex-col">
+      <div class="flex gap-2 items-center">
+        <!-- Search -->
+        <div class="bg-stone-100 w-full md:max-w-md flex h-11 items-center rounded-2xl ps-4 gap-4">
+          <label
+            for="searchApp"
+            class="relative size-4 shrink-0 cursor-pointer"
+            (click)="this.searchService.updateQuery(search)"
+            ><img ngSrc="/assets/icons/search.svg" alt="Search" fill
+          /></label>
+          <input
+            type="text"
+            id="searchApp"
+            [(ngModel)]="search"
+            (keyup.enter)="this.searchService.updateQuery(search)"
+            placeholder="search"
+            class="bg-transparent grow h-full px-2"
+          />
+        </div>
+      </div>
+    </nav>
+
+    <hr class="my-4" />
+    <section>
+      <div class="relative overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="*:font-normal *:text-neutral-400 *:px-6 *:py-3">
+              <th scope="col">Company</th>
+              <th scope="col">Product</th>
+              <th scope="col">Quantity</th>
+              <th scope="col">Period</th>
+              <th scope="col">Assigned To</th>
+              <th scope="col"></th>
+            </tr>
+          </thead>
+          @if (loading()) {
+            <tbody>
+              <td colspan="100%">
+                <div class="text-center py-9">
+                  <div class="loader"></div>
+                </div>
+              </td>
+            </tbody>
+          } @else {
+            @if (drafts() && drafts()!.data!.length > 0) {
+              <tbody>
+                @for (draft of drafts()?.data; track draft.id) {
+                  <tr
+                    class="bg-white border-b border-dashed border-neutral-200 *:px-4 *:py-4 *:whitespace-nowrap [&>th]:ps-0"
+                  >
+                    <th scope="row" class="font-normal">
+                      <a [routerLink]="['/drafts', draft.id]">
+                        <div class="flex gap-4 items-center">
+                          <div
+                            class="size-10 bg-primary rounded-lg text-white flex items-center justify-center uppercase"
+                          >
+                            {{ draft.company.name | initials }}
+                          </div>
+                          <div>
+                            <p class="font-bold">{{ draft.company.name }}</p>
+
+                            <div class="flex items-center gap-2">
+                              <div class="relative size-5">
+                                <img
+                                  [ngSrc]="
+                                    'https://raw.githubusercontent.com/hampusborgos/country-flags/main/svg/' +
+                                    draft.company.country_iso_code_2.toLowerCase() +
+                                    '.svg'
+                                  "
+                                  [alt]="draft.company.country_iso_code_2"
+                                  fill
+                                />
+                              </div>
+                              {{ draft.company.dba }}
+                            </div>
+                          </div>
+                        </div>
+                      </a>
+                    </th>
+                    <td>
+                      {{ config.productType()[draft.product] }}
+                    </td>
+                    <td>{{ draft.loan_amount | currency }}</td>
+                    <td>
+                      {{ draft.period }}
+                    </td>
+                    <td>
+                      {{ draft.created_at | customDate }}
+                      @if (draft.created_by) {
+                        <br />by {{ draft.created_by.first_name }} {{ draft.created_by.last_name }}
+                      }
+                    </td>
+                    <td>
+                      <div class="flex items-center justify-center gap-2">
+                        @defer (when permissions.hasPermission(permission.DELETE_DRAFT_APPLICATION)) {
+                          <button (click)="deleteDraftModal.open(); wiewing.set(draft.id)" type="button">
+                            <img src="assets/icons/trash-icon.svg" alt="delete" class="cursor-pointer size-5" />
+                          </button>
+                        }
+                        @if (permissions.hasPermission(permission.TRANSFER_DRAFT)) {
+                          <button
+                            class="size-5 relative"
+                            type="button"
+                            (click)="wiewing.set(draft.id); transferDraftModal.open()"
+                          >
+                            <img src="/assets/icons/transfer.svg" alt="options" fill />
+                          </button>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            } @else {
+              @defer {
+                <tbody>
+                  <td colspan="100%">
+                    <app-draft-not-found />
+                  </td>
+                </tbody>
+              }
+            }
+          }
+        </table>
+      </div>
+
+      @defer {
+        @if (drafts()?.pagination) {
+          <div class="mt-4">
+            <app-pagination />
+          </div>
+        }
+      }
+    </section>
+  </div>
+</div>
+
+<app-modal #deleteDraftModal>
+  <div class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
+    <div class="bg-white w-full max-w-xl rounded-lg overflow-auto">
+      <header class="p-4 flex justify-between items-center border-b border-gray-300">
+        <h2 class="font-bold text-xl truncate">Delete Draft</h2>
+        <button (click)="deleteDraftModal.close()" class="shrink-0">
+          <img
+            ngSrc="/assets/icons/close-icon.svg"
+            width="14"
+            height="18"
+            alt="close"
+            style="filter: invert(64%) sepia(1%) saturate(370%) hue-rotate(314deg) brightness(94%) contrast(91%)"
+          />
+        </button>
+      </header>
+      @defer (when permissions.hasPermission(permission.DELETE_DRAFT_APPLICATION)) {
+        @if (wiewing(); as id) {
+          <app-delete-draft
+            [id]="id"
+            (draftDeleted)="deleteDraftModal.close(); wiewing.set(null)"
+            (draftDeleted)="$event && onSearch()"
+          />
+        }
+      }
+    </div>
+  </div>
+</app-modal>
+
+<app-modal #transferDraftModal>
+  @defer {
+    <div class="flex items-center justify-center">
+      <div class="bg-white w-full max-w-lg rounded-lg overflow-auto">
+        <header class="p-4 flex justify-between items-center border-b border-gray-300">
+          <h2 class="font-bold text-xl truncate">Assign draft to user</h2>
+          <button (click)="transferDraftModal.close()" class="shrink-0">
+            <img ngSrc="/assets/icons/close-icon.svg" width="14" height="18" alt="Close" class="opacity-50" />
+          </button>
+        </header>
+
+        @if (wiewing(); as draft) {
+          <app-transfer-draft [draftId]="draft" (draftTransfered)="onSearch(); transferDraftModal.close()" />
+        }
+      </div>
+    </div>
+  }
+</app-modal>

@@ -1,0 +1,91 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <!-- Restrictions -->
+  <div class="mb-4">
+    <h3 class="text-gray-700 font-bold mb-2">Restrictions</h3>
+
+    <div class="flex items-center mb-6">
+      <label for="toggle" class="flex items-center cursor-pointer">
+        <div class="relative">
+          <input id="toggle" type="checkbox" class="sr-only" [formControl]="form.controls.has_loan_limit" />
+          <div
+            class="block w-10 h-6 rounded-full bg-gray-400 transition-colors"
+            [ngClass]="{
+              'bg-secondary': form.controls.has_loan_limit.value,
+            }"
+          ></div>
+          <div
+            class="dot absolute left-1 top-1 size-4 bg-white rounded-full transition-all"
+            [ngClass]="{
+              'translate-x-full': form.controls.has_loan_limit.value,
+              'translate-x-0': !form.controls.has_loan_limit.value,
+            }"
+          ></div>
+        </div>
+        <div class="ml-3">Has loan limit?</div>
+      </label>
+    </div>
+
+    <div class="grid md:grid-cols-2 grid-cols-1 gap-3 mb-4">
+      <div>
+        <app-custom-input label="Minimum loan" formControlName="minimum_loan" prefix="$" />
+      </div>
+
+      <div>
+        <app-custom-input label="Minimun Months in business" formControlName="minimum_months_in_business" />
+      </div>
+
+      @if (form.controls.has_loan_limit.value) {
+        <div>
+          <app-custom-input label="Loan limit" formControlName="loan_limit" prefix="$" />
+        </div>
+      }
+      <div>
+        <app-custom-input label="Min daily balance" formControlName="minimum_daily_balance" prefix="$" />
+      </div>
+      <div>
+        <app-custom-input label="Max negative days" formControlName="maximum_negative_days" />
+      </div>
+    </div>
+    <app-select-industries label="Allowed industries" formControlName="allowed_industries" />
+  </div>
+
+  <!-- Accepted Documents -->
+  <div class="mb-4">
+    <h3 class="text-gray-700 font-bold mb-2">Accepted documents</h3>
+    <div class="grid lg:grid-cols-3 grid-cols-1 gap-2" formArrayName="supported_ids">
+      @for (document of config.supportedIDs() | keyvalue; track $index) {
+        <label [for]="'checkboxDocuments' + $index" class="flex items-center">
+          <input
+            [id]="'checkboxDocuments' + $index"
+            (change)="toggleCheckbox($event, form.controls.supported_ids)"
+            type="checkbox"
+            [value]="document.key"
+            [checked]="(form.controls.supported_ids.value ?? []).includes(document.key)"
+            class="mr-2"
+          />
+          {{ document.value }}
+        </label>
+      }
+    </div>
+    <app-form-error-message [control]="form.controls.supported_ids" />
+  </div>
+
+  <div class="flex gap-4 justify-end mt-10 md:flex-row flex-col text-center max-md:w-full">
+    <button
+      class="items-center gap-2 bg-zinc-200 px-4 py-2 rounded-lg md:flex"
+      type="button"
+      (click)="formService.prev()"
+    >
+      <div class="relative size-5 shrink-0 hidden md:block">
+        <img ngSrc="/assets/icons/arrow-left.svg" alt="Back" fill />
+      </div>
+      Cancel
+    </button>
+    <button class="items-center gap-2 bg-secondary px-4 py-2 rounded-lg text-white md:flex" type="submit">
+      Continue
+      <div class="relative size-5 shrink-0 hidden md:block">
+        <img ngSrc="/assets/icons/arrow-right.svg" alt="Right" class="filter invert-[100%]" fill />
+      </div>
+    </button>
+  </div>
+</form>

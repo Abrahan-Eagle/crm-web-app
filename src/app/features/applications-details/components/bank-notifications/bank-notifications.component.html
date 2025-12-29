@@ -1,0 +1,99 @@
+@if (!loading()) {
+  @if (viewing(); as notification) {
+    <button
+      class="mt-6 flex items-center gap-2 border border-black px-2 py-1 rounded-md"
+      (click)="viewing.set(null)"
+      type="button"
+    >
+      <img src="assets/icons/arrow-left.svg" alt="back" class="size-4" />
+      <span>Back</span>
+    </button>
+
+    <app-offers [notification]="notification" (restored)="restore()" />
+  } @else {
+    @if (details.notifications().length > 0) {
+      <div class="flex flex-col sm:flex-row md:w-full gap-4 mt-6 mb-4 justify-between">
+        <div class="border-dashed border-2 border-gray-300 px-4 py-2 rounded-lg bg-white flex items-center">
+          <img src="assets/icons/application/offers.svg" alt="offers" class="size-20" />
+          <div class="flex flex-col items-center">
+            <div class="text-3xl font-bold text-black">{{ details.totalOffers() | number }}</div>
+            <div class="text-gray-400 text-md">Offer{{ details.totalOffers() === 1 ? '' : 's' }}</div>
+          </div>
+        </div>
+        <div>
+          <button
+            (click)="onlyOffers.set(!onlyOffers())"
+            class="mb-4 px-4 py-2 rounded-md border border-black"
+            [ngClass]="{
+              '!bg-black !text-white': onlyOffers(),
+            }"
+          >
+            Only offers
+          </button>
+        </div>
+      </div>
+      @if (!onlyOffers()) {
+        @for (group of groupedNotifications(); track $index) {
+          <h4 class="font-medium text-xl">{{ group.date + ':00.000Z' | date: 'MMM d, y, h:mm a' }}</h4>
+          <hr class="mb-5" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
+            @for (notification of group.items; track $index) {
+              <app-notification-view
+                [blocked]="details.isBlocked() ?? false"
+                (onReject)="editingNotification.set(notification); rejectNotificationModal.open()"
+                [notification]="notification"
+                (onTap)="viewing.set(notification)"
+              />
+            }
+          </div>
+        }
+      } @else {
+        @for (notification of notifications(); track $index) {
+          <app-offers [notification]="notification" [allowCreate]="false" />
+          <hr class="border-2" />
+        }
+      }
+    } @else {
+      <div class="text-center">
+        <img
+          ngSrc="/assets/icons/application/no-application-found.svg"
+          alt="Nothing found"
+          width="242"
+          height="242"
+          priority
+          class="mx-auto"
+        />
+        <h3 class="text-2xl font-bold">No notifications</h3>
+        <p class="text-balance">Select the <b>"Banks"</b> tab and send it to the banks.</p>
+      </div>
+    }
+  }
+} @else {
+  <div class="h-full text-center flex justify-center items-center">
+    <div class="loader"></div>
+  </div>
+}
+
+<app-modal #rejectNotificationModal>
+  @defer {
+    <div class="flex items-center justify-center">
+      <div class="bg-white w-full max-w-lg rounded-lg overflow-auto">
+        <header class="p-4 flex justify-between items-center border-b border-gray-300">
+          <h2 class="font-bold text-xl truncate">Bank Rejected</h2>
+          <button (click)="rejectNotificationModal.close()" class="shrink-0">
+            <img ngSrc="/assets/icons/close-icon.svg" width="14" height="18" alt="Close" class="opacity-50" />
+          </button>
+        </header>
+        <section class="p-2">
+          @if (editingNotification(); as notification) {
+            <app-reject-notification
+              [notification]="notification"
+              (rejected)="rejectNotificationModal.close()"
+              (rejected)="$event && updateNotification($event)"
+            />
+          }
+        </section>
+      </div>
+    </div>
+  }
+</app-modal>

@@ -1,0 +1,31 @@
+@if (loading()) {
+  <div class="p-4 text-center">
+    <div class="loader"></div>
+  </div>
+} @else {
+  @if (documents().length > 0) {
+    <div class="space-y-2">
+      @for (document of documents(); track document.id) {
+        <div class="flex items-center gap-3 p-2 bg-gray-50 rounded hover:bg-gray-100">
+          <input
+            type="checkbox"
+            class="h-5 w-5 text-primary border-gray-300 rounded cursor-pointer"
+            (change)="onCheckboxChange(document)"
+            [checked]="selectedDocumentsSet().has(document.id)"
+          />
+
+          <div class="flex-grow">
+            <app-remote-file-handler
+              [name]="document.name"
+              [type]="document.file_type || 'unknown'"
+              [source]="document.url || ''"
+              [showDelete]="false"
+            />
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <p class="text-sm text-gray-500 italic">No documents available</p>
+  }
+}

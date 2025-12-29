@@ -1,0 +1,69 @@
+<div class="grid xl:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-4">
+  @for (document of form.controls; track $index; let parent = $index) {
+    <div [formGroup]="document" class="relative">
+      @let period = document.controls.period.value;
+      @if (period) {
+        <h4 class="font-bold mb-4">{{ period + '-01' | date: 'MMMM' }} statement</h4>
+      }
+
+      @let file = draft.bank_statements.at($index);
+      @if (file) {
+        <div class="mb-4">
+          <app-application-document [name]="file.name!" [type]="file.type!" [source]="file.source" />
+        </div>
+      }
+
+      <div class="mb-4">
+        <app-custom-input
+          label="Amount"
+          formControlName="amount"
+          type="number"
+          pattern="^\d*(\.\d{0,2})?$"
+          min="0"
+          max="1000000"
+          step="1000"
+          prefix="$"
+          [id]="'amount_' + $index"
+        />
+      </div>
+
+      <div class="mb-4">
+        <app-custom-input
+          label="Negative days"
+          formControlName="negative_days"
+          type="number"
+          pattern="^\d+$"
+          min="0"
+          max="31"
+          step="1"
+          [id]="'negative_days' + $index"
+        />
+      </div>
+
+      <div class="mb-4">
+        <app-custom-input
+          label="Transactions"
+          formControlName="transactions"
+          type="number"
+          pattern="^\d+$"
+          min="0"
+          max="500"
+          step="1"
+          [id]="'transactions' + $index"
+        />
+      </div>
+    </div>
+  }
+</div>
+
+@if (loading()) {
+  <div class="h-full text-center flex justify-center items-center">
+    <div class="loader"></div>
+  </div>
+} @else {
+  <div>
+    <button class="bg-gray-200 text-gray-600 px-4 py-2 rounded-md w-full" type="button" (click)="updateDraft()">
+      Update
+    </button>
+  </div>
+}

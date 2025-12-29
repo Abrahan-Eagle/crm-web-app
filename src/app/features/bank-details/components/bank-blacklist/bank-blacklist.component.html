@@ -1,0 +1,114 @@
+@if (bank.blacklist) {
+  <div class="bg-white rounded-lg shadow p-4 border-l-4 border-red-500">
+    <div class="flex items-start gap-3">
+      <div class="bg-red-100 rounded-full p-1 mt-1">
+        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.312 16.5c-.77.833.192 2.5 1.732 2.5z"
+          ></path>
+        </svg>
+      </div>
+      <div class="flex-1">
+        <div class="flex items-start justify-between md:flex-row flex-col">
+          <h3 class="text-black font-medium">Blacklisted Bank</h3>
+          @if (permissions.hasPermission(permission.UPDATE_BANK)) {
+            @if (!loading()) {
+              <button
+                (click)="removeFromBlacklist()"
+                class="bg-green-100 hover:bg-green-200 text-green-800 py-1 px-3 rounded text-sm font-medium transition-colors"
+                [disabled]="loading()"
+              >
+                Remove from Blacklist
+              </button>
+            } @else {
+              <div class="loader"></div>
+            }
+          }
+        </div>
+        @if (bank.blacklist) {
+          <div class="mt-2">
+            <p>{{ bank.blacklist.note }}</p>
+            <hr class="my-1" />
+            <p class="text-neutral-600 text-sm mb-2">
+              {{ bank.blacklist.blacklisted_at | date: 'medium' }}
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+} @else {
+  @if (permissions.hasPermission(permission.UPDATE_BANK)) {
+    <button
+      type="button"
+      (click)="blacklistModal.open()"
+      class="bg-red-200 text-red-700 py-1 px-3 rounded"
+      [disabled]="loading()"
+    >
+      Send to Blacklist
+    </button>
+  }
+}
+
+<app-modal #blacklistModal (closed)="blacklistForm.reset()">
+  <div class="h-full flex items-center justify-center">
+    <div class="bg-white w-full max-w-md rounded-lg overflow-auto">
+      <header class="p-4 flex justify-between items-center border border-b border-gray-300">
+        <h2 class="font-bold text-xl truncate">Add to Blacklist</h2>
+        <button (click)="blacklistModal.close()" class="shrink-0">
+          <img
+            ngSrc="/assets/icons/close-icon.svg"
+            width="14"
+            height="18"
+            alt="close"
+            style="filter: invert(64%) sepia(1%) saturate(370%) hue-rotate(314deg) brightness(94%) contrast(91%)"
+          />
+        </button>
+      </header>
+      <section class="p-4">
+        <form [formGroup]="blacklistForm" (ngSubmit)="addToBlacklist()">
+          <div class="mb-4">
+            <label for="note" class="block text-sm font-medium text-gray-700 mb-2">
+              Reason for blacklisting (required)
+            </label>
+            <textarea
+              id="note"
+              formControlName="note"
+              rows="4"
+              class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Describe the reason why this bank should be added to the blacklist..."
+            ></textarea>
+            <app-form-error-message [control]="blacklistForm.controls.note" />
+          </div>
+          <div class="flex justify-end gap-2">
+            <button
+              type="button"
+              (click)="blacklistModal.close()"
+              class="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300"
+              [disabled]="loading()"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+              [disabled]="blacklistForm.invalid || loading()"
+            >
+              @if (loading()) {
+                <span class="flex items-center gap-2">
+                  <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Processing...
+                </span>
+              } @else {
+                Add to Blacklist
+              }
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+</app-modal>

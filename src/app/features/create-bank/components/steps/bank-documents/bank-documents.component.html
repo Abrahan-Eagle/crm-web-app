@@ -1,0 +1,26 @@
+@defer {
+  <app-file-picker [files]="formService.files()" #filePicker [maxFiles]="config.maxBankFiles" />
+}
+
+<div class="flex gap-4 justify-end mt-10 md:flex-row flex-col text-center max-md:w-full">
+  <button
+    class="items-center gap-2 bg-zinc-200 px-4 py-2 rounded-lg md:flex"
+    type="button"
+    (click)="formService.prev()"
+  >
+    <div class="relative size-5 shrink-0 hidden md:block">
+      <img ngSrc="/assets/icons/arrow-left.svg" alt="Back" fill />
+    </div>
+    Cancel
+  </button>
+  <button
+    class="items-center gap-2 bg-secondary px-4 py-2 rounded-lg text-white md:flex"
+    type="button"
+    (click)="next()"
+  >
+    Continue
+    <div class="relative size-5 shrink-0 hidden md:block">
+      <img ngSrc="/assets/icons/arrow-right.svg" alt="Right" class="filter invert-[100%]" fill />
+    </div>
+  </button>
+</div>

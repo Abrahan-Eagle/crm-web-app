@@ -1,0 +1,34 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div formArrayName="bank_statements" class="grid xl:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-4">
+    @for (document of form.controls.bank_statements.controls; track $index; let parent = $index) {
+      <div [formGroup]="document">
+        @let period = document.controls.statement.value?.period;
+        @if (period) {
+          <h4 class="font-bold mb-4">{{ period + '01' | date: 'MMMM' }} statement</h4>
+        }
+        <app-document-picker formControlName="statement" />
+      </div>
+    }
+  </div>
+  <app-form-error-message [control]="form.controls.bank_statements" />
+  <app-form-error-message [control]="formService.form" />
+
+  <div class="flex gap-4 justify-end mt-10 md:flex-row flex-col text-center max-md:w-full">
+    <button
+      class="items-center gap-2 bg-zinc-200 px-4 py-2 rounded-lg md:flex"
+      type="button"
+      (click)="formService.prev()"
+    >
+      <div class="relative size-5 shrink-0 hidden md:block">
+        <img ngSrc="/assets/icons/arrow-left.svg" alt="Back" fill />
+      </div>
+      Cancel
+    </button>
+    <button class="items-center gap-2 bg-secondary px-4 py-2 rounded-lg text-white md:flex" type="submit">
+      Continue
+      <div class="relative size-5 shrink-0 hidden md:block">
+        <img ngSrc="/assets/icons/arrow-right.svg" alt="Right" class="filter invert-[100%]" fill />
+      </div>
+    </button>
+  </div>
+</form>

@@ -1,0 +1,82 @@
+@if (offers() && offers()!.data!.length > 0) {
+  <div class="bg-white rounded-lg shadow p-4 py-6">
+    <nav>
+      <h2 class="font-bold">Offers</h2>
+      <span class="text-sm text-neutral-400">The offers shown correspond to applications in the current tenant.</span>
+    </nav>
+    <hr class="my-4" />
+    <section>
+      <div class="relative overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="*:font-normal *:text-neutral-400 *:px-6 *:py-3">
+              <th scope="col">Company</th>
+              <th scope="col">Amount</th>
+              <th scope="col">Payment Plan</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          @if (loading()) {
+            <tbody>
+              <tr>
+                <td colspan="100%">
+                  <div class="text-center py-9">
+                    <div class="loader"></div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          } @else {
+            <tbody>
+              @for (offer of offers()!.data; track $index) {
+                <tr
+                  class="bg-white border-b border-dashed border-neutral-200 *:px-6 *:py-4 *:whitespace-nowrap [&>th]:ps-0"
+                >
+                  <td class="font-normal">
+                    <a [routerLink]="['/', 'applications', offer.id]" target="_blank">
+                      <div class="flex gap-4 items-center">
+                        <div
+                          class="size-10 bg-primary rounded-lg text-white flex items-center justify-center uppercase"
+                        >
+                          {{ offer.company.name | initials }}
+                        </div>
+                        <div>
+                          <p class="font-bold">{{ offer.company.name }}</p>
+                          <p>{{ offer.company.dba }}</p>
+                        </div>
+                      </div>
+                    </a>
+                  </td>
+
+                  <td>{{ offer.offer.purchased_amount | currency }}</td>
+                  <td>
+                    {{ config.paymentPlans()[offer.offer.payment_plan!] }}
+                  </td>
+
+                  <td>
+                    <p
+                      class="text-center rounded-lg inline-block px-3 py-1 text-white"
+                      [ngClass]="{
+                        'bg-green-500': offer.offer.status === 'ON_HOLD',
+                        'bg-blue-500': offer.offer.status === 'ACCEPTED',
+                      }"
+                    >
+                      {{ config.offerStatus()[offer.offer.status!] }}
+                    </p>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          }
+        </table>
+      </div>
+      @defer {
+        @if (offers()?.pagination) {
+          <div class="mt-4">
+            <app-pagination />
+          </div>
+        }
+      }
+    </section>
+  </div>
+}

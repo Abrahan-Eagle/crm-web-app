@@ -1,0 +1,130 @@
+@if (loading()) {
+  <div class="h-full text-center flex justify-center items-center">
+    <div class="loader"></div>
+  </div>
+} @else {
+  <div class="p-3">
+    <div class="bg-white p-6 rounded-lg shadow-lg">
+      <h2 class="text-2xl font-bold mb-6 text-center">Edit Business Details</h2>
+      <hr />
+      <form [formGroup]="form" class="mt-10" (ngSubmit)="submit()">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="md:col-span-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <app-custom-input label="Company Name" formControlName="company_name" />
+              </div>
+              <div>
+                <app-custom-input label="DBA (Optional)" formControlName="dba" />
+              </div>
+              <div>
+                <app-custom-input label="Tax ID" [(ngModel)]="taxId" [ngModelOptions]="{ standalone: true }" disabled />
+              </div>
+
+              <div>
+                <app-select-industries
+                  formControlName="industry"
+                  label="Industry"
+                  [maxSelection]="1"
+                  [isVisibleIndustries]="false"
+                />
+              </div>
+              <div>
+                <app-custom-input
+                  label="Creation date"
+                  formControlName="creation_date"
+                  type="date"
+                  [max]="maxCreationDate()"
+                />
+              </div>
+              <div>
+                <app-custom-select
+                  placeholder="Entity type"
+                  formControlName="entity_type"
+                  [options]="entityType().values"
+                  [labels]="entityType().labels"
+                />
+              </div>
+              <div>
+                <app-custom-input label="Service" formControlName="service" />
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <h3 class="text-lg font-bold text-gray-700">Contacts</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                @if (permissions.hasPermission(permission.VIEW_FULL_PHONE)) {
+                  <div formArrayName="phone_numbers">
+                    @for (control of form.controls.phone_numbers.controls; track $index) {
+                      <div [formGroup]="control" class="mb-5 flex items-center">
+                        <app-phone-input formControlName="phone" class="grow" />
+                        @if (!$first) {
+                          <button type="button" (click)="removePhone($index)">
+                            <img ngSrc="/assets/icons/trash-icon.svg" width="14" height="16" alt="Delete" />
+                          </button>
+                        }
+                      </div>
+                    }
+                    @if (!maxPhones) {
+                      <button
+                        type="button"
+                        (click)="addPhone()"
+                        class="px-2 text-sky-600 flex items-center justify-center border border-sky-600 rounded-md text-sm mt-4"
+                      >
+                        + Add phone
+                      </button>
+                    }
+                  </div>
+                }
+                @if (permissions.hasPermission(permission.VIEW_FULL_EMAIL)) {
+                  <div formArrayName="emails">
+                    @for (control of form.controls.emails.controls; track $index) {
+                      <div [formGroup]="control" class="mb-5 flex items-center">
+                        <app-custom-input label="Email" formControlName="email" class="grow" [id]="'email-' + $index" />
+                        @if (!$first) {
+                          <button type="button" (click)="removeEmail($index)">
+                            <img ngSrc="/assets/icons/trash-icon.svg" width="14" height="16" alt="Delete" />
+                          </button>
+                        }
+                      </div>
+                    }
+                    @if (!maxEmails) {
+                      <button
+                        type="button"
+                        (click)="addEmail()"
+                        class="px-2 text-sky-600 flex items-center justify-center border border-sky-600 rounded-md text-sm mt-4"
+                      >
+                        + Add email
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+            <div class="mt-6">
+              <h3 class="text-lg font-bold text-gray-700">Address</h3>
+              <div class="mt-4">
+                <app-address-form formControlName="address" />
+              </div>
+            </div>
+
+            <div class="flex gap-4 justify-end mt-10 md:flex-row flex-col text-center max-md:w-full">
+              <a
+                class="items-center gap-2 bg-zinc-200 px-4 py-2 rounded-lg md:flex"
+                [routerLink]="['/companies', companyId()]"
+              >
+                <div class="relative size-5 shrink-0 hidden md:block">
+                  <img ngSrc="/assets/icons/arrow-left.svg" alt="Back" fill />
+                </div>
+                Cancel
+              </a>
+              <button class="items-center gap-2 bg-secondary px-4 py-2 rounded-lg text-white md:flex" type="submit">
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+}

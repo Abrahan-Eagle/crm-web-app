@@ -1,0 +1,43 @@
+<div class="relative bg-white rounded-lg shadow-md p-4 flex flex-col items-center truncate max-w-xs">
+  @if (permissions.hasPermission(permission.READ_BANK_TYPE)) {
+    <div
+      class="uppercase text-[10px] bg-gray-400 text-white inline-block px-2 rounded-md tracking-wide absolute left-2 top-1"
+    >
+      {{ notification().bank.bank_type }}
+    </div>
+  }
+  @if (notification().status !== 'REJECTED' && !blocked()) {
+    <a class="absolute top-2 right-2 bg-gray-200 rounded-full p-1 cursor-pointer" (click)="onReject.emit()">
+      <img src="assets/icons/close-icon.svg" alt="close" class="size-4" />
+    </a>
+  }
+
+  <a (click)="onTap.emit()" class="cursor-pointer w-full">
+    <div
+      class="rounded-full mb-4 size-20 flex items-center justify-center cursor-pointer mx-auto"
+      [ngClass]="config.notificationStatus()[notification().status]"
+      (click)="onTap.emit()"
+    >
+      @let icon = config.notificationIcons()[notification().status];
+      @if (icon) {
+        <img [src]="icon.src" [alt]="icon.alt" [class]="icon.size" />
+      }
+    </div>
+
+    <div class="w-full max-w-xs truncate">
+      <p class="font-semibold text-sm text-center truncate">
+        {{ notification().bank.name }}
+      </p>
+    </div>
+    @if (notification().updated_at) {
+      <p class="text-sm text-gray-500 text-center">{{ notification().updated_at | date: 'MMM d, y, h:mm a' }}</p>
+    }
+
+    <div class="w-full flex justify-center mt-2">
+      <button class="bg-red-500 text-white rounded-lg px-2 py-1 text-sm truncate flex items-center">
+        <img src="assets/icons/application/little-bell.svg" alt="offers" class="size-6" />
+        <span>{{ notification().offers.length }} offer{{ notification().offers.length === 1 ? '' : 's' }}</span>
+      </button>
+    </div>
+  </a>
+</div>

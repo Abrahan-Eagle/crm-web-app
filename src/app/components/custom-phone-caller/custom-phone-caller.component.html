@@ -1,0 +1,44 @@
+<button
+  class="bg-primary/40 rounded-lg size-6 flex items-center justify-center shrink-0"
+  type="button"
+  (click)="modal.open()"
+>
+  <img src="/assets/icons/phone.svg" alt="Call" class="size-3" />
+</button>
+
+<app-modal #modal>
+  <div class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
+    <div class="bg-white w-full max-w-md rounded-lg overflow-auto">
+      <header class="p-4 flex justify-between items-center border-b border-gray-300">
+        <h2 class="font-bold text-xl truncate">Make a call</h2>
+        <button (click)="modal.close()" class="shrink-0">
+          <img
+            src="/assets/icons/close-icon.svg"
+            width="14"
+            height="18"
+            alt="close"
+            style="filter: invert(64%) sepia(1%) saturate(370%) hue-rotate(314deg) brightness(94%) contrast(91%)"
+          />
+        </button>
+      </header>
+      <div class="text-center p-6">
+        <form [formGroup]="form" (ngSubmit)="requestACall()">
+          <app-phone-input formControlName="phone" />
+
+          <div class="mt-6 flex flex-col md:flex-row justify-center gap-4">
+            @if (!loading()) {
+              <button class="bg-gray-200 text-gray-600 px-4 py-2 rounded-md" (click)="modal.close()" type="button">
+                Cancel
+              </button>
+              <button class="bg-red-600 text-white px-4 py-2 rounded-md" type="submit">Request call</button>
+            } @else {
+              <div class="h-full text-center flex justify-center items-center">
+                <div class="loader"></div>
+              </div>
+            }
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</app-modal>

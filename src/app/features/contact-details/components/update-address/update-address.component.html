@@ -1,0 +1,10 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <app-address-form formControlName="address" />
+  <div class="mt-10 max-md:w-full text-end">
+    @if (!loading()) {
+      <button class="bg-secondary px-4 py-2 rounded-lg text-white" type="submit">Save</button>
+    } @else {
+      <div class="loader"></div>
+    }
+  </div>
+</form>

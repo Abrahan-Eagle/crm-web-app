@@ -1,0 +1,38 @@
+<app-modal #modal (closed)="callRequest.set(null)">
+  <div class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
+    <div class="bg-white w-full max-w-md rounded-lg overflow-auto">
+      <header class="p-4 flex justify-between items-center border-b border-gray-300">
+        <h2 class="font-bold text-xl truncate">Make a call</h2>
+        <button (click)="modal.close()" class="shrink-0">
+          <img
+            src="/assets/icons/close-icon.svg"
+            width="14"
+            height="18"
+            alt="close"
+            style="filter: invert(64%) sepia(1%) saturate(370%) hue-rotate(314deg) brightness(94%) contrast(91%)"
+          />
+        </button>
+      </header>
+      <div class="text-center p-6">
+        <div class="flex justify-center">
+          <div class="p-4 bg-red-100 rounded-full">
+            <img src="/assets/icons/phone.svg" alt="" class="size-12" />
+          </div>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mt-4">
+          Are you sure you want to call {{ callRequest()?.phone_hint }}?
+        </h3>
+        <div class="mt-6 flex flex-col md:flex-row justify-center gap-4">
+          @if (!loading()) {
+            <button class="bg-gray-200 text-gray-600 px-4 py-2 rounded-md" (click)="modal.close()">Cancel</button>
+            <button class="bg-red-600 text-white px-4 py-2 rounded-md" (click)="proceed()">Proceed</button>
+          } @else {
+            <div class="h-full text-center flex justify-center items-center">
+              <div class="loader"></div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</app-modal>

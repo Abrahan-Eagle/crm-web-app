@@ -1,0 +1,146 @@
+<div class="p-7">
+  <div class="rounded-2xl shadow bg-white p-6">
+    <nav class="flex gap-4 justify-between items-center flex-wrap md:flex-row flex-col">
+      <!-- Actions -->
+      <div class="flex gap-4 md:flex-row flex-col max-md:w-full">
+        <button class="flex items-center gap-2 bg-secondary text-white px-4 py-2 rounded-lg" routerLink="create">
+          <div class="relative size-5 shrink-0"><img ngSrc="/assets/icons/add.svg" alt="Create" fill /></div>
+          Create
+        </button>
+      </div>
+    </nav>
+    <hr class="my-4" />
+    <section>
+      <div class="relative overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="*:font-normal *:text-neutral-400 *:px-6 *:py-3">
+              <th scope="col">Subject</th>
+              <th scope="col">Message</th>
+              <th scope="col">Contacts</th>
+              <th scope="col">Pending</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="text-end"></th>
+            </tr>
+          </thead>
+          @if (loading()) {
+            <tbody>
+              <td colspan="100%">
+                <div class="text-center py-9">
+                  <div class="loader"></div>
+                </div>
+              </td>
+            </tbody>
+          } @else {
+            @if (campaigns().length > 0) {
+              <tbody>
+                @for (campaign of campaigns(); track campaign.id) {
+                  <tr
+                    class="bg-white border-b border-dashed border-neutral-200 *:px-6 *:py-4 *:whitespace-nowrap [&>th]:ps-0"
+                  >
+                    <th scope="row" class="font-normal">
+                      {{ campaign.subject }}
+                    </th>
+                    <td>
+                      <a
+                        class="relative size-5 block cursor-pointer"
+                        (click)="selected.set(campaign); messageModal.open()"
+                      >
+                        <img
+                          ngSrc="
+                      assets/icons/eye.svg
+                    "
+                          class="opacity-50"
+                          alt="View details"
+                          fill
+                        />
+                      </a>
+                    </td>
+                    <td>{{ campaign.contacts }}</td>
+                    <td>{{ campaign.pending }}</td>
+
+                    <td>
+                      <p
+                        class="font-semibold"
+                        [ngClass]="{
+                          'text-green-500': campaign.status === 'COMPLETED',
+                          'text-primary': campaign.status === 'SENDING',
+                          'text-red-500': campaign.status === 'STOPPED',
+                        }"
+                      >
+                        {{ campaign.status }}
+                      </p>
+                    </td>
+                    <td>
+                      @if (campaign.status !== 'COMPLETED') {
+                        <button class="size-4 relative" (click)="selected.set(campaign); toggleCampaign.open()">
+                          <img
+                            [ngSrc]="
+                              campaign.status === 'SENDING' ? '/assets/icons/stop.svg' : '/assets/icons/play.svg'
+                            "
+                            alt="start/stop"
+                            fill
+                          />
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            } @else {
+              @defer {
+                <tbody>
+                  <td colspan="100%">
+                    <app-campaigns-not-found />
+                  </td>
+                </tbody>
+              }
+            }
+          }
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+
+<app-modal #toggleCampaign (closed)="selected.set(null)">
+  @defer {
+    <div class="h-full flex items-center">
+      <div class="bg-white w-full max-w-md mx-auto rounded-lg overflow-auto max-h-full">
+        <header class="p-4 flex justify-between items-center border border-b border-gray-300">
+          <h2 class="font-bold text-xl truncate">Stop/Start Campaign</h2>
+          <button (click)="toggleCampaign.close()" class="shrink-0">
+            <img ngSrc="/assets/icons/close-icon.svg" width="14" height="18" alt="close" class="opacity-50" />
+          </button>
+        </header>
+        <section class="p-4">
+          @if (selected()) {
+            <app-toggle-campaign
+              [campaign]="selected()!"
+              (campaignUpdated)="$event && getCampaigns()"
+              (campaignUpdated)="toggleCampaign.close()"
+            />
+          }
+        </section>
+      </div>
+    </div>
+  }
+</app-modal>
+
+<app-modal #messageModal [backgroundClose]="true" (closed)="selected.set(null)">
+  @if (selected(); as campaign) {
+    <div class="flex items-center justify-center">
+      <div class="bg-white w-full max-w-lg rounded-lg overflow-auto">
+        <header class="p-4 flex justify-between items-center border-b border-gray-300">
+          <h2 class="font-bold text-xl truncate">{{ campaign.subject }}</h2>
+          <button (click)="messageModal.close()" class="shrink-0">
+            <img ngSrc="/assets/icons/close-icon.svg" width="14" height="18" alt="Close" class="opacity-50" />
+          </button>
+        </header>
+        <div class="p-4 whitespace-pre-wrap">
+          <div [innerHTML]="campaign.message"></div>
+        </div>
+      </div>
+    </div>
+  }
+</app-modal>

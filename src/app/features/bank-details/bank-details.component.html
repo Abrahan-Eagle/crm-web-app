@@ -1,0 +1,257 @@
+@if (loading()) {
+  <div class="h-full text-center flex justify-center items-center">
+    <div class="loader"></div>
+  </div>
+} @else {
+  @if (bank(); as bank) {
+    <div class="flex flex-col lg:flex-row gap-4 p-4">
+      <aside class="w-full lg:w-1/3 flex flex-col gap-4">
+        @defer {
+          <app-bank-blacklist [bank]="bank" (bankUpdated)="updateBank($event)" />
+        }
+
+        <div class="bg-white rounded-lg shadow p-4 py-6">
+          <header class="text-center mb-6">
+            <div
+              class="bg-blue-950 text-white rounded-lg size-20 flex items-center justify-center mb-8 mx-auto text-2xl"
+            >
+              {{ bank.name | initials }}
+            </div>
+            <div class="flex items-center justify-center gap-4">
+              <h2 class="text-xl truncate">{{ bank.name }}</h2>
+            </div>
+            @if (permissions.hasPermission(permission.READ_BANK_TYPE)) {
+              <div class="uppercase text-sm bg-secondary text-white inline-block px-2 rounded-md tracking-wide">
+                {{ bank.bank_type }}
+              </div>
+            }
+            <p class="text-neutral-500 truncate">{{ bank.manager }}</p>
+          </header>
+
+          <div class="group open" #details>
+            <div class="flex justify-between items-center">
+              <button (click)="details.classList.toggle('open')" class="flex gap-2 items-center">
+                <h3 class="text-black">Details</h3>
+                <div class="relative size-3 rotate-180 group-[.open]:rotate-0 transition-all">
+                  <img ngSrc="/assets/icons/arrow-down.svg" fill alt="" />
+                </div>
+              </button>
+              @if (
+                permissions.hasPermission(permission.UPDATE_BANK) &&
+                permissions.hasPermission(permission.VIEW_FULL_EMAIL) &&
+                permissions.hasPermission(permission.VIEW_FULL_PHONE)
+              ) {
+                <button class="bg-gray-200 text-gray-600 py-1 px-3 rounded" (click)="bankContactsModal.open()">
+                  Edit
+                </button>
+              }
+            </div>
+            <hr class="my-2" />
+            <div class="mb-2 grid grid-rows-[0fr] transition-all group-[.open]:grid-rows-[1fr]">
+              <div class="overflow-hidden">
+                @for (contact of bank.contacts; track $index; let contactIdx = $index) {
+                  <div>
+                    <h5 class="mb-2">{{ contact.first_name }} {{ contact.last_name }}</h5>
+                    <div class="mb-2">
+                      <h4>Phones</h4>
+                      @for (phone of contact.phones; track $index) {
+                        <p class="text-neutral-500 mb-2">
+                          <app-callable-phone
+                            [callInfo]="{
+                              entity_type: 'BANK',
+                              entity_id: bank.id,
+                              phone_index: contactIdx + $index,
+                              phone_hint: phone | formatPhone,
+                            }"
+                          />
+                        </p>
+                      }
+                    </div>
+
+                    <div class="mb-2">
+                      <h4>Email</h4>
+                      @for (email of contact.emails; track $index) {
+                        <p class="text-neutral-500">{{ email }}</p>
+                      }
+                    </div>
+                  </div>
+                  <hr class="my-3" />
+                }
+                <div>
+                  <h4>Address</h4>
+                  <p class="text-neutral-500">
+                    {{ bank.address | address | async }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <app-modal #bankContactsModal>
+            <div class="h-full flex items-center">
+              <div class="bg-white w-full rounded-lg overflow-auto max-h-full">
+                <header class="p-4 flex justify-between items-center border border-b border-gray-300">
+                  <h2 class="font-bold text-xl truncate">Edit Bank</h2>
+                  <button (click)="bankContactsModal.close()" class="shrink-0">
+                    <img
+                      ngSrc="/assets/icons/close-icon.svg"
+                      width="14"
+                      height="18"
+                      alt="close"
+                      style="
+                        filter: invert(64%) sepia(1%) saturate(370%) hue-rotate(314deg) brightness(94%) contrast(91%);
+                      "
+                    />
+                  </button>
+                </header>
+                <section class="p-4">
+                  @defer (when permissions.hasPermission(permission.UPDATE_BANK)) {
+                    <app-update-bank-contacts
+                      [bank]="bank"
+                      (bankUpdated)="updateBank($event)"
+                      (bankUpdated)="bankContactsModal.close()"
+                    />
+                  }
+                </section>
+              </div>
+            </div>
+          </app-modal>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4">
+          <div class="group open" #filters>
+            <div class="flex justify-between items-center">
+              <button (click)="filters.classList.toggle('open')" class="flex gap-2 items-center">
+                <h3 class="text-black">Filters</h3>
+                <div class="relative size-3 rotate-180 group-[.open]:rotate-0 transition-all">
+                  <img ngSrc="/assets/icons/arrow-down.svg" fill alt="" />
+                </div>
+              </button>
+              @if (permissions.hasPermission(permission.UPDATE_BANK)) {
+                <button class="bg-gray-200 text-gray-600 py-1 px-3 rounded" (click)="bankFiltersModal.open()">
+                  Edit
+                </button>
+              }
+            </div>
+            <hr class="my-2" />
+            <div class="mb-2 grid grid-rows-[0fr] transition-all group-[.open]:grid-rows-[1fr]">
+              <div class="overflow-hidden">
+                <div class="*:mb-4">
+                  <div>
+                    <h4>Classifications</h4>
+                    <p class="text-neutral-500">{{ bank.constraints.classifications }}</p>
+                  </div>
+                  <div>
+                    <h4>Territories</h4>
+                    <p class="text-neutral-500">
+                      @for (item of bank.constraints.territories; track $index) {
+                        {{ item.territory }}
+                      }
+                    </p>
+                  </div>
+                  @if (bank.constraints.deposits) {
+                    <div>
+                      <h4>Deposits</h4>
+                      <p class="text-neutral-500">Transactions: {{ bank.constraints.deposits.minimum_transactions }}</p>
+                      <p class="text-neutral-500">
+                        Amount: {{ bank.constraints.deposits.minimum_amount | currency: 'USD' : 'symbol' : '0.0-2' }}
+                      </p>
+                    </div>
+
+                    @if (bank.constraints.deposits.by_industries.length) {
+                      <h4>Deposit by industries</h4>
+                      @for (deposit of bank.constraints.deposits.by_industries; track $index) {
+                        <div>
+                          <h5>{{ deposit.industry.name }}</h5>
+                          <p class="text-neutral-500">Transactions: {{ deposit.minimum_transactions }}</p>
+                          <p class="text-neutral-500">
+                            Amount: {{ deposit.minimum_amount | currency: 'USD' : 'symbol' : '0.0-2' }}
+                          </p>
+                        </div>
+                      }
+                    }
+                  }
+                  <div>
+                    <h4>Bank restrictions</h4>
+                    <div class="text-neutral-500">
+                      @if (bank.constraints.has_loan_limit) {
+                        <p>Loan limit: {{ bank.constraints.loan_limit | currency: 'USD' : 'symbol' : '0.0-2' }}</p>
+                      }
+                      <p>Minimum loan: {{ bank.constraints.minimum_loan }}</p>
+                      <p>Minimum time in business: {{ bank.constraints.minimum_months_in_business }}</p>
+                      <p>
+                        Daily balance:
+                        {{ bank.constraints.minimum_daily_balance | currency: 'USD' : 'symbol' : '0.0-2' }}
+                      </p>
+                      <p>Negative days: {{ bank.constraints.maximum_negative_days }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <app-modal #bankFiltersModal>
+            <div class="h-full flex items-center">
+              <div class="bg-white w-full rounded-lg overflow-auto max-h-full">
+                <header class="p-4 flex justify-between items-center border border-b border-gray-300">
+                  <h2 class="font-bold text-xl truncate">Edit Bank</h2>
+                  <button (click)="bankFiltersModal.close()" class="shrink-0">
+                    <img
+                      ngSrc="/assets/icons/close-icon.svg"
+                      width="14"
+                      height="18"
+                      alt="close"
+                      style="
+                        filter: invert(64%) sepia(1%) saturate(370%) hue-rotate(314deg) brightness(94%) contrast(91%);
+                      "
+                    />
+                  </button>
+                </header>
+                <section class="p-4">
+                  @defer (when permissions.hasPermission(permission.UPDATE_BANK)) {
+                    <app-update-bank-constraints
+                      [bank]="bank"
+                      (bankUpdated)="bankFiltersModal.close()"
+                      (bankUpdated)="getBank(bank.id)"
+                    />
+                  }
+                </section>
+              </div>
+            </div>
+          </app-modal>
+        </div>
+
+        <div class="bg-white rounded-lg shadow px-5 py-4">
+          <div class="mb-4">
+            <h3>Documents</h3>
+          </div>
+          <hr class="my-3" />
+          @if (uploadingDoc()) {
+            <div class="text-center p-4">
+              <div class="loader"></div>
+            </div>
+          } @else {
+            @defer (when permissions.hasPermission(permission.UPDATE_BANK)) {
+              @if (files().length < config.maxBankFiles) {
+                <app-file-picker [maxFiles]="1" [manualHandled]="true" (selectFiles)="addFile($event)" />
+              }
+            }
+            @for (file of files(); track $index) {
+              <app-remote-file-handler
+                [source]="file.source"
+                [name]="file.name"
+                [type]="file.type"
+                (deleted)="removeFile(file.id)"
+              />
+            }
+          }
+        </div>
+      </aside>
+
+      <main class="flex flex-col gap-4 w-full lg:w-3/4">
+        @defer (when permissions.hasPermission(permission.READ_APPLICATION)) {
+          <app-bank-offers [bankId]="bank.id" />
+        }
+      </main>
+    </div>
+  }
+}

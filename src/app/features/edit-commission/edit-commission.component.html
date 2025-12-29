@@ -1,0 +1,178 @@
+@if (loading()) {
+  <div class="h-full text-center flex justify-center items-center">
+    <div class="loader"></div>
+  </div>
+} @else {
+  <form [formGroup]="form">
+    @if (commission(); as commission) {
+      <div class="p-3">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+          <div class="flex flex-col md:flex-row gap-4 items-center mb-4">
+            <div class="bg-[#35568F] border border-dashed border-white p-4 text-center rounded text-white flex-grow">
+              <h3 class="text-2xl font-semibold truncate">{{ commission.application.amount_financed | currency }}</h3>
+              <div class="flex flex-wrap justify-center gap-2">
+                <p>Factor: {{ commission.application.factor_rate }}%</p>
+                <p>Term: {{ config.terms()[commission.application.term] }}</p>
+                <p>Points: {{ commission.application.points }}</p>
+              </div>
+              <span class="font-semibold truncate"> {{ commission.bank.name }} </span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-10 gap-4">
+            <div class="col-span-7 *:mb-6">
+              <div (drop)="addUserToCommission($event, 'commission')" (dragover)="$event.preventDefault()">
+                <div class="bg-secondary p-2 rounded rounded-br-none rounded-bl-none">
+                  <h4 class="text-center font-semibold text-white">Commission</h4>
+                </div>
+
+                <div class="bg-white p-4 border border-blue-950/20 rounded rounded-tr-none rounded-tl-none">
+                  <div class="flex items-center gap-2 mb-4">
+                    <p>Total:</p>
+                    <app-custom-input
+                      prefix="$"
+                      [ngModel]="commission.commission.total | number: '1.0-2'"
+                      [ngModelOptions]="{ standalone: true }"
+                      disabled
+                    />
+                  </div>
+                  <div formArrayName="commission_distribution">
+                    @for (control of form.controls.commission_distribution.controls; track $index) {
+                      <div
+                        class="flex gap-2 items-center justify-between truncate border-b border-dashed border-neutral-200 py-3"
+                        [formGroup]="control"
+                      >
+                        <div class="flex items-center gap-2">
+                          @let user = control.value.user!;
+                          <div
+                            class="size-10 bg-primary rounded-lg text-white flex items-center justify-center uppercase"
+                          >
+                            {{ user.first_name + ' ' + user.last_name | initials }}
+                          </div>
+                          <div class="flex-grow truncate">
+                            <div class="font-semibold truncate">{{ user.first_name }} {{ user.last_name }}</div>
+                          </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                          <app-custom-input prefix="$" formControlName="amount" />
+
+                          <button
+                            type="button"
+                            class="shrink-0"
+                            (click)="form.controls.commission_distribution.removeAt($index)"
+                          >
+                            <img src="/assets/icons/trash-icon.svg" width="14" height="16" alt="Delete" />
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+                <app-form-error-message [control]="form.controls.commission_distribution" />
+              </div>
+
+              <div (drop)="addUserToCommission($event, 'psf')" (dragover)="$event.preventDefault()">
+                <div class="bg-blue-950 p-2 rounded rounded-br-none rounded-bl-none">
+                  <h4 class="text-center font-semibold text-white">PSF</h4>
+                </div>
+
+                <div class="bg-white p-4 border border-blue-950/20 rounded rounded-tr-none rounded-tl-none">
+                  <div class="flex items-center gap-2 mb-4">
+                    <p>Total:</p>
+                    <app-custom-input prefix="$" formControlName="psf_amount" />
+                  </div>
+                  <div formArrayName="psf_distribution">
+                    @for (control of form.controls.psf_distribution.controls; track $index) {
+                      <div
+                        class="flex gap-2 items-center justify-between truncate border-b border-dashed border-neutral-200 py-3"
+                        [formGroup]="control"
+                      >
+                        <div class="flex items-center gap-2">
+                          @let user = control.value.user!;
+                          <div
+                            class="size-10 bg-primary rounded-lg text-white flex items-center justify-center uppercase"
+                          >
+                            {{ user.first_name + ' ' + user.last_name | initials }}
+                          </div>
+                          <div class="flex-grow truncate">
+                            <div class="font-semibold truncate">{{ user.first_name }} {{ user.last_name }}</div>
+                          </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                          <app-custom-input prefix="$" formControlName="amount" />
+
+                          <button
+                            type="button"
+                            class="shrink-0"
+                            (click)="form.controls.psf_distribution.removeAt($index)"
+                          >
+                            <img src="/assets/icons/trash-icon.svg" width="14" height="16" alt="Delete" />
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+                <app-form-error-message [control]="form.controls.psf_distribution" />
+              </div>
+
+              <div class="flex gap-4 justify-end mt-10 md:flex-row flex-col text-center max-md:w-full">
+                @if (!loading()) {
+                  <button
+                    class="items-center gap-2 bg-zinc-200 px-4 py-2 rounded-lg md:flex"
+                    type="button"
+                    (click)="saveDraft()"
+                  >
+                    Save draft
+                  </button>
+                  <button
+                    class="items-center gap-2 bg-secondary px-4 py-2 rounded-lg text-white md:flex"
+                    type="button"
+                    (click)="publish()"
+                  >
+                    Publish
+                  </button>
+                } @else {
+                  <div class="loader"></div>
+                }
+              </div>
+            </div>
+            <div class="col-span-3">
+              <div class="flex gap-4 items-center mb-2">
+                <div class="size-10 bg-primary rounded-lg text-white flex items-center justify-center uppercase">
+                  {{ commission.company.name | initials }}
+                </div>
+                <div>
+                  <p class="font-bold">{{ commission.company.name }}</p>
+
+                  <div class="flex items-center gap-2">
+                    <div class="relative size-5">
+                      <img
+                        [ngSrc]="
+                          'https://raw.githubusercontent.com/hampusborgos/country-flags/main/svg/' +
+                          commission.company.country_iso_code_2.toLowerCase() +
+                          '.svg'
+                        "
+                        [alt]="commission.company.country_iso_code_2"
+                        fill
+                      />
+                    </div>
+
+                    <p>
+                      @if (commission.company.dba) {
+                        <p>{{ commission.company.dba }}</p>
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <app-search-user (userSelected)="userToAdd.set($event)" />
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </form>
+}

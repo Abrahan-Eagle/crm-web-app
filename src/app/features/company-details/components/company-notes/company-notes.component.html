@@ -1,0 +1,91 @@
+@if (permissions.hasPermission(permission.READ_COMPANY_NOTE)) {
+  <section>
+    @if (permissions.hasPermission(permission.CREATE_COMPANY_NOTE)) {
+      <nav class="flex gap-4 justify-between items-center flex-wrap md:flex-row flex-col">
+        <h1 class="text-2xl font-bold">Notes</h1>
+        <div class="max-md:w-full">
+          <button
+            class="flex items-center gap-2 bg-secondary text-white px-4 py-2 rounded-lg w-full justify-center"
+            (click)="createNote.open()"
+          >
+            <div class="relative size-5 shrink-0"><img ngSrc="/assets/icons/add.svg" alt="Create" fill /></div>
+            Create
+          </button>
+        </div>
+      </nav>
+    }
+
+    @if (company.notes.length > 0) {
+      <span class="block text-lg font-semibold mb-2">Company Notes</span>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-2">
+        @for (note of company.notes; track $index) {
+          <app-note [note]="note" [entityId]="company.id" entityType="company" (deleted)="removeNote(note.id)" />
+        }
+      </div>
+
+      @if (hasMemberNotes()) {
+        <span class="block text-lg font-semibold mb-2">Member Notes</span>
+      }
+
+      @for (member of company.members; track $index) {
+        @if (member.contact.notes!.length > 0) {
+          <h3 class="text-sm mb-2">{{ member.contact.first_name + ' ' + member.contact.last_name }}</h3>
+        }
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          @for (note of member.contact.notes!; track $index) {
+            <div class="mb-4">
+              <app-note
+                [note]="note"
+                [entityId]="member.contact.id!"
+                entityType="contact"
+                (deleted)="removeNoteContact(note.id)"
+              />
+            </div>
+          }
+        </div>
+      }
+    } @else {
+      <div class="text-center py-4 max-w-2xl mx-auto">
+        <div class="py-4 rounded-xl">
+          <img
+            ngSrc="/assets/icons/contact/no-contacts-found.svg"
+            alt="Nothing found"
+            width="160"
+            height="160"
+            priority
+            class="mx-auto"
+          />
+        </div>
+        <h3 class="text-2xl font-bold">No notes have been added</h3>
+      </div>
+    }
+  </section>
+}
+
+<app-modal #createNote>
+  <div class="h-full flex items-center">
+    <div class="bg-white w-full rounded-lg overflow-auto max-h-full">
+      <header class="p-4 flex justify-between items-center border border-b border-gray-300">
+        <h2 class="font-bold text-xl truncate">Create Note</h2>
+        <button (click)="createNote.close()" class="shrink-0">
+          <img
+            ngSrc="/assets/icons/close-icon.svg"
+            width="14"
+            height="18"
+            alt="close"
+            style="filter: invert(64%) sepia(1%) saturate(370%) hue-rotate(314deg) brightness(94%) contrast(91%)"
+          />
+        </button>
+      </header>
+      @defer {
+        <section class="p-4">
+          <app-create-note
+            [entityId]="company.id"
+            [entityType]="'company'"
+            (note)="$event && updateNotes($event); createNote.close()"
+          />
+        </section>
+      }
+    </div>
+  </div>
+</app-modal>

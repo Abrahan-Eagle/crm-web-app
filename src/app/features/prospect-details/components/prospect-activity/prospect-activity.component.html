@@ -1,0 +1,39 @@
+<nav class="flex gap-4 md:flex-row flex-col mb-4 *:px-4 *:py-2 *:rounded-md *:border *:border-black">
+  <button
+    (click)="selectedTab.set('calls')"
+    [ngClass]="{
+      '!bg-black !text-white': selectedTab() === 'calls',
+    }"
+  >
+    Calls
+  </button>
+  <button
+    (click)="selectedTab.set('notes')"
+    [ngClass]="{
+      '!bg-black !text-white': selectedTab() === 'notes',
+    }"
+  >
+    Notes
+  </button>
+</nav>
+@switch (selectedTab()) {
+  @case ('notes') {
+    @for (note of prospect().notes; track $index) {
+      <app-prospect-note [note]="note" />
+    } @empty {
+      <p class="text-center">No registered notes.</p>
+    }
+  }
+  @case ('calls') {
+    @for (call of prospect().call_history; track $index) {
+      <div class="*:p-2 *:border-b">
+        <div class="flex gap-2 items-center">
+          <img src="/assets/icons/phone.svg" alt="Call" class="size-3" /> {{ call.created_at | customDate }} by
+          {{ call.created_by.first_name }} {{ call.created_by.last_name }}
+        </div>
+      </div>
+    } @empty {
+      <p class="text-center">No registered calls.</p>
+    }
+  }
+}

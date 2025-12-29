@@ -1,0 +1,259 @@
+@if (loading()) {
+  <div class="h-full text-center flex justify-center items-center">
+    <div class="loader"></div>
+  </div>
+} @else {
+  @if (contact(); as contact) {
+    <div class="flex flex-col lg:flex-row gap-4 p-4">
+      <aside class="w-full lg:w-1/3 flex flex-col gap-4">
+        <div class="bg-white rounded-lg shadow p-4 py-6">
+          <header class="text-center mb-6">
+            <div
+              class="bg-blue-950 text-white rounded-lg size-20 flex items-center justify-center mb-8 mx-auto text-2xl"
+            >
+              {{ contact.first_name | initials }}
+            </div>
+            <h2 class="text-xl truncate">{{ contact.first_name }} {{ contact.last_name }}</h2>
+            <p class="text-neutral-500 truncate flex items-center justify-center mb-2">
+              <img src="assets/icons/contact/warehouse-Icon.svg" alt="Warehouse Icon" class="size-4 mr-2" />
+              {{ contact.birthdate | customDate }} ({{ contact.birthdate | yearsAgo }})
+            </p>
+            <h3 class="text-sm truncate">Created At</h3>
+            <p class="text-neutral-500 truncate text-sm">
+              {{ contact.created_at | customDate }}
+            </p>
+            @if (contact.created_by) {
+              <h3>Created by</h3>
+              <p class="text-neutral-500 truncate flex items-center justify-center">
+                {{ contact.created_by.first_name + ' ' + contact.created_by.last_name }}
+              </p>
+            }
+          </header>
+
+          <div class="group open" #details>
+            <div class="flex justify-between items-center">
+              <button (click)="details.classList.toggle('open')" class="flex gap-2 items-center">
+                <h3 class="text-black">Details</h3>
+                <div class="relative size-3 rotate-180 group-[.open]:rotate-0 transition-all">
+                  <img ngSrc="/assets/icons/arrow-down.svg" fill alt="" />
+                </div>
+              </button>
+              @if (permissions.hasPermission(permission.UPDATE_CONTACT)) {
+                <button class="bg-gray-200 text-gray-600 py-1 px-3 rounded" (click)="contactModal.open()">Edit</button>
+              }
+            </div>
+            <hr class="my-2" />
+            <div class="mb-2 grid grid-rows-[0fr] transition-all group-[.open]:grid-rows-[1fr]">
+              <div class="overflow-hidden">
+                <div class="mb-2">
+                  <h4>Phones</h4>
+                  @for (phone of contact.phones; track $index) {
+                    <p class="text-neutral-500">
+                      <app-callable-phone
+                        [callInfo]="{
+                          entity_type: 'CONTACT',
+                          entity_id: contact.id,
+                          phone_index: $index,
+                          phone_hint: phone | formatPhone,
+                        }"
+                      />
+                    </p>
+                  }
+                </div>
+
+                <div class="mb-2">
+                  <h4>Email</h4>
+                  @for (email of contact.emails; track $index) {
+                    <p class="text-neutral-500">{{ email }}</p>
+                  }
+                </div>
+                <hr class="my-3" />
+                <div class="flex justify-between items-center">
+                  <h3 class="text-black">Address</h3>
+                  @if (permissions.hasPermission(permission.UPDATE_CONTACT)) {
+                    <button class="bg-gray-200 text-gray-600 py-1 px-3 rounded" (click)="addressModal.open()">
+                      Edit
+                    </button>
+                  }
+                </div>
+                <div>
+                  <p class="text-neutral-500 mt-4">{{ contact.address | address | async }}</p>
+                </div>
+              </div>
+            </div>
+            <app-modal #contactModal>
+              <div class="h-full flex items-center">
+                <div class="bg-white w-full rounded-lg overflow-auto max-h-full">
+                  <header class="p-4 flex justify-between items-center border border-b border-gray-300">
+                    <h2 class="font-bold text-xl truncate">Edit contact</h2>
+                    <button (click)="contactModal.close()" class="shrink-0">
+                      <img
+                        ngSrc="/assets/icons/close-icon.svg"
+                        width="14"
+                        height="18"
+                        alt="close"
+                        style="
+                          filter: invert(64%) sepia(1%) saturate(370%) hue-rotate(314deg) brightness(94%) contrast(91%);
+                        "
+                      />
+                    </button>
+                  </header>
+                  <section class="p-4">
+                    @defer (when permissions.hasPermission(permission.UPDATE_CONTACT)) {
+                      <app-update-contact
+                        [contact]="contact"
+                        (contactUpdated)="updateContact($event)"
+                        (contactUpdated)="contactModal.close()"
+                      />
+                    }
+                  </section>
+                </div>
+              </div>
+            </app-modal>
+            <app-modal #addressModal>
+              <div class="h-full flex items-center">
+                <div class="bg-white w-full rounded-lg overflow-auto max-h-full">
+                  <header class="p-4 flex justify-between items-center border border-b border-gray-300">
+                    <h2 class="font-bold text-xl truncate">Edit Address</h2>
+                    <button (click)="addressModal.close()" class="shrink-0">
+                      <img
+                        ngSrc="/assets/icons/close-icon.svg"
+                        width="14"
+                        height="18"
+                        alt="close"
+                        style="
+                          filter: invert(64%) sepia(1%) saturate(370%) hue-rotate(314deg) brightness(94%) contrast(91%);
+                        "
+                      />
+                    </button>
+                  </header>
+                  <section class="p-4">
+                    @defer (when permissions.hasPermission(permission.UPDATE_CONTACT)) {
+                      <app-update-contact-address
+                        [contact]="contact"
+                        (contactUpdated)="updateContact($event)"
+                        (contactUpdated)="addressModal.close()"
+                      />
+                    }
+                  </section>
+                </div>
+              </div>
+            </app-modal>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow px-5 py-4">
+          <div class="mb-4">
+            <h3>Documents</h3>
+          </div>
+          <hr class="my-3" />
+          @if (uploadingDoc()) {
+            <div class="text-center p-4">
+              <div class="loader"></div>
+            </div>
+          } @else {
+            @defer (when permissions.hasPermission(permission.UPDATE_CONTACT)) {
+              @if (files().length < config.maxBankFiles) {
+                <app-file-picker
+                  [maxFiles]="1"
+                  [manualHandled]="true"
+                  (selectFiles)="addFile($event)"
+                  [withType]="true"
+                  [fileTypes]="config.contactFileTypes()"
+                />
+              }
+            }
+            @for (file of files(); track $index) {
+              <app-remote-file-handler
+                [source]="file.source"
+                [name]="file.name"
+                [type]="file.type"
+                (deleted)="removeFile(file.id)"
+                [withDocType]="true"
+                [docType]="config.contactFileTypes()[file.docType]"
+              />
+            }
+          }
+        </div>
+      </aside>
+
+      <main class="flex flex-col gap-4 w-full lg:w-3/4">
+        @if (permissions.hasPermission(permission.READ_CONTACT_NOTE)) {
+          <section>
+            <nav class="flex gap-4 justify-between items-center flex-wrap md:flex-row flex-col">
+              <h1 class="text-2xl font-bold">Notes</h1>
+              <div class="max-md:w-full">
+                <button
+                  class="flex items-center gap-2 bg-secondary text-white px-4 py-2 rounded-lg w-full justify-center"
+                  (click)="createNote.open()"
+                >
+                  <div class="relative size-5 shrink-0"><img ngSrc="/assets/icons/add.svg" alt="Create" fill /></div>
+                  Create
+                </button>
+              </div>
+            </nav>
+
+            @if (contact.notes.length > 0) {
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-5">
+                @for (note of contact.notes; track $index) {
+                  <app-note
+                    [note]="note"
+                    [entityId]="contact.id"
+                    entityType="contact"
+                    (deleted)="removeNote(note.id)"
+                  />
+                }
+              </div>
+            } @else {
+              <div class="text-center py-4 max-w-2xl mx-auto">
+                <div class="py-4 rounded-xl">
+                  <img
+                    ngSrc="/assets/icons/contact/no-contacts-found.svg"
+                    alt="Nothing found"
+                    width="160"
+                    height="160"
+                    priority
+                    class="mx-auto"
+                  />
+                </div>
+                <h3 class="text-2xl font-bold">No notes have been added</h3>
+              </div>
+            }
+          </section>
+        }
+        @defer (when permissions.hasPermission(permission.LIST_COMPANIES)) {
+          <app-contact-companies [contactId]="contact.id" />
+        }
+      </main>
+    </div>
+  }
+}
+
+<app-modal #createNote>
+  <div class="h-full flex items-center">
+    <div class="bg-white w-full rounded-lg overflow-auto max-h-full">
+      <header class="p-4 flex justify-between items-center border border-b border-gray-300">
+        <h2 class="font-bold text-xl truncate">Create Note</h2>
+        <button (click)="createNote.close()" class="shrink-0">
+          <img
+            ngSrc="/assets/icons/close-icon.svg"
+            width="14"
+            height="18"
+            alt="close"
+            style="filter: invert(64%) sepia(1%) saturate(370%) hue-rotate(314deg) brightness(94%) contrast(91%)"
+          />
+        </button>
+      </header>
+      @defer {
+        <section class="p-4">
+          <app-create-note
+            [entityId]="contactId()"
+            entityType="contact"
+            (note)="$event && updateNotes($event); createNote.close()"
+            (note)="$event && registeredNote.set(true)"
+          />
+        </section>
+      }
+    </div>
+  </div>
+</app-modal>

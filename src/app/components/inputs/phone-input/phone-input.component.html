@@ -1,0 +1,68 @@
+<div>
+  <div class="flex border-b relative">
+    <div>
+      <button
+        class="h-full p-2 items-center justify-center bg-gray-100 flex gap-2"
+        type="button"
+        data-bs-toggle="dropdown"
+        (click)="open.set(!open())"
+      >
+        @if (value; as phone) {
+          <div class="relative size-5">
+            <img
+              [ngSrc]="
+                'https://raw.githubusercontent.com/hampusborgos/country-flags/main/svg/' +
+                phone.region_code.toLowerCase() +
+                '.svg'
+              "
+              [alt]="phone.region_code"
+              fill
+            />
+          </div>
+          {{ phone.intl_prefix }}
+        }
+      </button>
+      <ul class="overflow-auto w-full absolute bg-white border z-30" [ngClass]="{ hidden: !open() }">
+        <input
+          class="w-full px-2 py-2"
+          #searchQuery
+          type="text"
+          (input)="search.set(searchQuery.value)"
+          placeholder="Search..."
+        />
+        <hr class="m-0 mb-1" />
+        <cdk-virtual-scroll-viewport itemSize="10" class="h-[150px]">
+          <button
+            type="button"
+            *cdkVirtualFor="let item of countries() | keyvalue"
+            (click)="setCountry(item.key)"
+            class="flex w-full gap-2 py-2"
+          >
+            <div class="relative size-5">
+              <img
+                [ngSrc]="
+                  'https://raw.githubusercontent.com/hampusborgos/country-flags/main/svg/' +
+                  item.key.toLowerCase() +
+                  '.svg'
+                "
+                [alt]="item.value"
+                fill
+              />
+            </div>
+            {{ item.value }}
+          </button>
+        </cdk-virtual-scroll-viewport>
+      </ul>
+    </div>
+    <input
+      type="tel"
+      class="w-full px-2"
+      #phone
+      (input)="updateValue($event)"
+      (focus)="open.set(false)"
+      placeholder="Phone"
+    />
+  </div>
+
+  <app-form-error-message [control]="control.control!" />
+</div>

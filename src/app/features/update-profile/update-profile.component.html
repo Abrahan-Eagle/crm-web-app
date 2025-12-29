@@ -1,0 +1,27 @@
+<div [class]="showInModal() ? '' : 'p-7'">
+  <div class="bg-white rounded-lg shadow p-4 w-full">
+    <div class="mb-8">
+      @if (!showInModal()) {
+        <h1 class="text-lg font-bold">My Profile</h1>
+      }
+    </div>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <app-custom-input label="First name" formControlName="first_name" />
+        </div>
+        <div>
+          <app-custom-input label="Last name" formControlName="last_name" />
+        </div>
+      </div>
+      <div class="mb-4">
+        <app-phone-input formControlName="phone" class="grow" />
+      </div>
+      @if (loading()) {
+        <div class="loader"></div>
+      } @else {
+        <button class="items-center gap-2 bg-secondary px-4 py-2 rounded-lg text-white" type="submit">Update</button>
+      }
+    </form>
+  </div>
+</div>

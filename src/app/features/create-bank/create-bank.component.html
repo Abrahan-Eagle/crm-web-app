@@ -1,0 +1,57 @@
+<div class="flex">
+  <div class="w-1/2 p-5 max-lg:hidden">
+    <ul>
+      @for (step of formService.steps; track $index) {
+        <li>
+          <div class="flex items-center gap-4">
+            <div
+              class="size-11 rounded-md flex items-center justify-center shrink-0 font-bold"
+              [ngClass]="$index === formService.currentStep() ? 'text-white bg-secondary' : 'bg-gray-400'"
+            >
+              {{ $index + 1 }}
+            </div>
+            <span>{{ step }}</span>
+          </div>
+          @if (!$last) {
+            <div class="w-px h-7 ml-5 border border-dashed border-neutral-200"></div>
+          }
+        </li>
+      }
+    </ul>
+  </div>
+
+  <div class="w-full p-5">
+    @if (!formService.created()) {
+      @if (!formService.submitting()) {
+        @switch (formService.currentStep()) {
+          @case (0) {
+            <app-bank-basic-information />
+          }
+          @case (1) {
+            <app-bank-address />
+          }
+          @case (2) {
+            <app-bank-contact-information />
+          }
+          @case (3) {
+            <app-bank-constraints />
+          }
+          @case (4) {
+            <app-bank-filters />
+          }
+          @case (5) {
+            <app-bank-documents />
+          }
+        }
+      } @else {
+        <div class="flex justify-center items-center h-full">
+          <div class="loader"></div>
+        </div>
+      }
+    } @else {
+      @defer {
+        <app-bank-created />
+      }
+    }
+  </div>
+</div>

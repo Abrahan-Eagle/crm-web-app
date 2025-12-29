@@ -54,20 +54,32 @@ Este comando instalará todas las dependencias necesarias:
 
 #### Paso 3: Configurar Variables de Entorno
 
-Crea un archivo `src/environments/environment.ts` basándote en `src/assets/env.sample.js`:
+**Para Desarrollo Local:**
+
+La aplicación usa variables de entorno dinámicas. El archivo `src/environments/environment.ts` lee las variables desde `window.env`.
+
+**Configuración del Backend:**
+
+1. Descarga el archivo `.env` del backend desde:
+   - https://share.1password.com/s#JDwStgwvXwI3brjWVAZdrNvGc2AJS-_88ruaqlgCqsk
+
+2. Configura el backend para que corra en tu local (por ejemplo, `http://localhost:3000`)
+
+3. En el frontend, apunta el `BASE_API` a tu backend local. Puedes modificar `src/environments/environment.development.ts`:
 
 ```typescript
 export const environment = {
-  production: false,
-  AUTH0_DOMAIN: 'tu-dominio.auth0.com',
-  AUTH0_CLIENT_ID: 'tu-client-id',
-  AUTH0_AUDIENCE_DOMAIN: 'tu-audience',
-  AUTH0_CONNECTION: 'tu-connection',
-  BASE_API: 'http://localhost:3000', // URL de tu backend API
-  NOTIFICATION_API_CLIENT_ID: 'tu-notification-api-client-id',
-  NOTIFICATION_API_USER_ID: 'tu-user-id'
+  BASE_API: 'http://localhost:3000', // Tu backend local
+  AUTH0_DOMAIN: 'businessmarketfinders.us.auth0.com',
+  AUTH0_CLIENT_ID: 'KOwgRAn7VY4kHAug7LwnIK0l3Ufek2og',
+  AUTH0_AUDIENCE_DOMAIN: 'https://crm-core-service.fly.dev/core-service/v1/',
+  AUTH0_CONNECTION: 'Username-Password-Authentication',
+  SENTRY_DNS: 'https://8474086af6fd84b2df9bae4507b8afc2@o4508055918804992.ingest.us.sentry.io/4508055933681664',
+  NOTIFICATION_API_CLIENT_ID: 'wxar8aqip7uw4v77sn8w1pu372',
 };
 ```
+
+**Nota**: Para producción, las variables se configuran dinámicamente desde `window.env` (ver `src/assets/env.sample.js`).
 
 ### 1.3 Levantar el Servidor de Desarrollo
 
@@ -181,6 +193,54 @@ node --version
 
 Si es menor a 18.x, actualiza Node.js desde [nodejs.org](https://nodejs.org/)
 
+#### Error: "Callback URL mismatch" en Auth0
+
+Este error ocurre cuando la URL de callback no está permitida en Auth0. Hay varias soluciones:
+
+**Solución 1: Usar el puerto 4200 (Recomendado)**
+
+El puerto 4200 probablemente ya está configurado en Auth0. Detén el servidor actual y reinícialo en el puerto 4200:
+
+```bash
+# Detén el servidor actual (Ctrl + C)
+# Luego inicia en el puerto 4200
+ng serve --port 4200
+```
+
+O si el puerto está ocupado, libéralo primero:
+
+```bash
+# Encuentra el proceso usando el puerto 4200
+lsof -ti:4200
+# O en Linux:
+fuser -k 4200/tcp
+
+# Luego inicia el servidor
+ng serve --port 4200
+```
+
+**Solución 2: Agregar la URL en Auth0 Dashboard**
+
+1. Accede a https://manage.auth0.com/
+2. Ve a **Applications** → Selecciona tu aplicación (Client ID: `KOwgRAn7VY4kHAug7LwnIK0l3Ufek2og`)
+3. Ve a la sección **Allowed Callback URLs**
+4. Agrega la URL completa, por ejemplo:
+   - `http://localhost:39679`
+   - O mejor aún, usa un patrón: `http://localhost:*` (permite cualquier puerto en localhost)
+5. Click en **Save Changes**
+
+**Solución 3: Usar patrón wildcard para desarrollo local**
+
+En Auth0, agrega este patrón en **Allowed Callback URLs**:
+
+```
+http://localhost:*
+```
+
+Esto permitirá cualquier puerto en localhost, útil para desarrollo.
+
+**Nota**: El `redirect_uri` se configura automáticamente como `window.location.origin` en `app.config.ts`, por lo que siempre usará la URL actual del navegador.
+
 ### 1.7 Estructura del Proyecto
 
 ```
@@ -216,6 +276,14 @@ Según el archivo `environment.development.ts`, la aplicación está configurada
 - **Client ID**: `KOwgRAn7VY4kHAug7LwnIK0l3Ufek2og`
 - **Connection**: `Username-Password-Authentication`
 - **Backend API**: `https://crm-core-service.fly.dev/core-service`
+
+#### Credenciales de Desarrollo
+
+Para el equipo de desarrollo, las credenciales son:
+
+- **Email**: Tu correo electrónico (el que usas en el equipo)
+- **Contraseña temporal**: `32A8GyE9dWbY@`
+- **Importante**: Cambia esta contraseña al primer inicio de sesión
 
 #### Cómo Obtener Credenciales de Acceso
 
@@ -256,7 +324,15 @@ Si ya tienes acceso a la aplicación con un usuario administrador:
 
 **Nota**: Este método crea el usuario en el backend, pero también necesitas crear el usuario en Auth0 con las mismas credenciales para que pueda autenticarse.
 
-##### Opción 3: Contactar al Administrador
+##### Opción 3: Credenciales del Equipo de Desarrollo
+
+Para miembros del equipo de desarrollo:
+
+- **Email**: Tu correo electrónico (el que usas en el equipo)
+- **Contraseña temporal**: `32A8GyE9dWbY@`
+- **Importante**: Debes cambiar esta contraseña al primer inicio de sesión
+
+##### Opción 4: Contactar al Administrador
 
 Si no tienes acceso al Dashboard de Auth0:
 
@@ -300,30 +376,81 @@ Los usuarios tienen **permisos granulares** que vienen en el JWT token de Auth0.
 - Verifica que `AUTH0_CONNECTION` en `environment.ts` sea correcto
 - Debe ser `Username-Password-Authentication` o el nombre de tu connection en Auth0
 
-**Error: "Callback URL mismatch" o "The provided redirect_uri is not in the list of allowed callback URLs"**
-- Este error ocurre cuando la URL de redirección no está configurada en Auth0
-- **Solución**:
-  1. Accede al Dashboard de Auth0: https://manage.auth0.com/
-  2. Ve a **Applications** → Selecciona tu aplicación (Client ID: `KOwgRAn7VY4kHAug7LwnIK0l3Ufek2og`)
-  3. Ve a la pestaña **Settings**
-  4. Busca la sección **Allowed Callback URLs**
-  5. Agrega las siguientes URLs (una por línea):
-     ```
-     http://localhost:4200
-     http://localhost:4200/
-     https://tu-dominio.com
-     https://tu-dominio.com/
-     ```
-  6. Si estás en desarrollo, agrega también:
-     ```
-     http://localhost:4200/**
-     ```
-  7. Click en **Save Changes**
-  8. Recarga la aplicación en el navegador
+### 1.9 Convenciones y Estándares del Proyecto
 
-**Nota**: La aplicación usa `window.location.origin` como `redirect_uri`, por lo que debe coincidir exactamente con una de las URLs permitidas en Auth0.
+#### Convenciones de Código
 
-### 1.9 Comandos Útiles
+- **Idioma**: Todo el código y comentarios deben estar en **inglés**
+- **Clean Code**: Seguimos principios de Clean Code
+- **Conventional Commits**: Usamos Conventional Commits para los mensajes de commit
+
+#### Proceso de Desarrollo
+
+- **No commits directos a main**: Todo el código debe pasar por Pull Requests (PRs)
+- **Code Review**: Todos los PRs requieren revisión y aprobación antes de mergear
+- **Sugerencias**: Las sugerencias son bienvenidas, pero deben hacerse en el momento adecuado
+
+#### Patrones Arquitectónicos Utilizados
+
+El proyecto utiliza los siguientes patrones y principios:
+
+- **Result Pattern**: Para manejo de errores y resultados
+- **Clean Architecture**: Separación de capas y responsabilidades
+- **CQRS Pattern**: Separación de comandos y consultas
+- **SOLID Principles**: Principios de diseño orientado a objetos
+- **MongoDB Aggregations**: Para consultas complejas en la base de datos
+
+#### Formato de Commits (Conventional Commits)
+
+Los commits deben seguir este formato:
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+**Tipos comunes:**
+- `feat`: Nueva funcionalidad
+- `fix`: Corrección de bug
+- `docs`: Cambios en documentación
+- `style`: Cambios de formato (no afectan código)
+- `refactor`: Refactorización de código
+- `test`: Agregar o modificar tests
+- `chore`: Tareas de mantenimiento
+
+**Ejemplos:**
+```bash
+feat(applications): add ability to transfer applications between users
+
+docs: update installation instructions
+
+fix(auth): resolve callback URL mismatch error
+```
+
+#### Estructura de Pull Requests
+
+1. Crea una rama desde `main`:
+   ```bash
+   git checkout -b feature/nombre-de-la-feature
+   ```
+
+2. Realiza tus cambios y commits
+
+3. Push a tu rama:
+   ```bash
+   git push origin feature/nombre-de-la-feature
+   ```
+
+4. Crea un Pull Request en GitHub
+
+5. Espera la revisión y aprobación
+
+6. Una vez aprobado, se mergea a `main`
+
+### 1.10 Comandos Útiles
 
 #### Ver logs del servidor
 

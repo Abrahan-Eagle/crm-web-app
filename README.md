@@ -1,25 +1,238 @@
 # CRM Web Application - Análisis Exhaustivo
 
 ## Índice
-1. [Análisis Arquitectónico y Estructural](#1-análisis-arquitectónico-y-estructural)
-2. [Análisis de Lógica de Negocio por Módulo](#2-análisis-de-lógica-de-negocio-por-módulo)
-3. [Diagramas de Flujo](#3-diagramas-de-flujo)
-4. [Análisis de Servicios y API](#4-análisis-de-servicios-y-api)
-5. [Análisis de Componentes Reutilizables](#5-análisis-de-componentes-reutilizables)
-6. [Integraciones Externas](#6-integraciones-externas)
-7. [Casos de Uso de Negocio](#7-casos-de-uso-de-negocio)
-8. [Diagrama de Entidades y Relaciones](#8-diagrama-de-entidades-y-relaciones)
-9. [Análisis de Estados y Workflows](#9-análisis-de-estados-y-workflows)
-10. [Resumen Ejecutivo](#10-resumen-ejecutivo)
-11. [Análisis Profundo: Módulo Applications](#11-análisis-profundo-módulo-applications)
-12. [Flujos Completos de Procesos - Trazabilidad Detallada](#12-flujos-completos-de-procesos---trazabilidad-detallada)
-13. [Análisis de Arquitectura Completa](#13-análisis-de-arquitectura-completa)
+1. [Instalación y Configuración](#1-instalación-y-configuración)
+2. [Análisis Arquitectónico y Estructural](#2-análisis-arquitectónico-y-estructural)
+3. [Análisis de Lógica de Negocio por Módulo](#3-análisis-de-lógica-de-negocio-por-módulo)
+4. [Diagramas de Flujo](#4-diagramas-de-flujo)
+5. [Análisis de Servicios y API](#5-análisis-de-servicios-y-api)
+6. [Análisis de Componentes Reutilizables](#6-análisis-de-componentes-reutilizables)
+7. [Integraciones Externas](#7-integraciones-externas)
+8. [Casos de Uso de Negocio](#8-casos-de-uso-de-negocio)
+9. [Diagrama de Entidades y Relaciones](#9-diagrama-de-entidades-y-relaciones)
+10. [Análisis de Estados y Workflows](#10-análisis-de-estados-y-workflows)
+11. [Resumen Ejecutivo](#11-resumen-ejecutivo)
+12. [Análisis Profundo: Módulo Applications](#12-análisis-profundo-módulo-applications)
+13. [Flujos Completos de Procesos - Trazabilidad Detallada](#13-flujos-completos-de-procesos---trazabilidad-detallada)
+14. [Análisis de Arquitectura Completa](#14-análisis-de-arquitectura-completa)
 
 ---
 
-## 1. ANÁLISIS ARQUITECTÓNICO Y ESTRUCTURAL
+## 1. INSTALACIÓN Y CONFIGURACIÓN
 
-### 1.1 Arquitectura General
+### 1.1 Requisitos Previos
+
+Para levantar este proyecto necesitas tener instalado:
+
+- **Node.js**: Versión 18.x o superior
+- **npm**: Versión 9.x o superior (viene con Node.js)
+- **Angular CLI**: Se instala automáticamente como dependencia del proyecto
+
+### 1.2 Instalación
+
+#### Paso 1: Clonar el Repositorio
+
+```bash
+git clone https://github.com/Abrahan-Eagle/crm-web-app.git
+cd crm-web-app
+```
+
+#### Paso 2: Instalar Dependencias
+
+```bash
+npm install
+```
+
+Este comando instalará todas las dependencias necesarias:
+- Angular 19.1.4 y sus módulos
+- Auth0 SDK para autenticación
+- NotificationAPI SDK para notificaciones
+- Tailwind CSS para estilos
+- Otras dependencias del proyecto
+
+**Nota**: La primera instalación puede tardar varios minutos dependiendo de tu conexión a internet.
+
+#### Paso 3: Configurar Variables de Entorno
+
+Crea un archivo `src/environments/environment.ts` basándote en `src/assets/env.sample.js`:
+
+```typescript
+export const environment = {
+  production: false,
+  AUTH0_DOMAIN: 'tu-dominio.auth0.com',
+  AUTH0_CLIENT_ID: 'tu-client-id',
+  AUTH0_AUDIENCE_DOMAIN: 'tu-audience',
+  AUTH0_CONNECTION: 'tu-connection',
+  BASE_API: 'http://localhost:3000', // URL de tu backend API
+  NOTIFICATION_API_CLIENT_ID: 'tu-notification-api-client-id',
+  NOTIFICATION_API_USER_ID: 'tu-user-id'
+};
+```
+
+### 1.3 Levantar el Servidor de Desarrollo
+
+#### Opción 1: Usando npm (Recomendado)
+
+```bash
+npm start
+```
+
+Este comando ejecuta `ng serve` que:
+- Compila la aplicación Angular
+- Inicia el servidor de desarrollo en `http://localhost:4200`
+- Habilita hot-reload (recarga automática al cambiar archivos)
+- Muestra errores de compilación en la consola
+
+#### Opción 2: Usando Angular CLI directamente
+
+```bash
+npx ng serve
+```
+
+O si tienes Angular CLI instalado globalmente:
+
+```bash
+ng serve
+```
+
+#### Opción 3: Levantar en segundo plano
+
+Si quieres que el servidor corra en segundo plano:
+
+```bash
+npm start &
+```
+
+Para detener el servidor en segundo plano:
+
+```bash
+pkill -f "ng serve"
+```
+
+### 1.4 Acceder a la Aplicación
+
+Una vez que el servidor esté corriendo, verás un mensaje similar a:
+
+```
+✔ Browser application bundle generation complete.
+
+Initial Chunk Files   | Names         |  Size
+main.js              | main          |  XXX kB
+
+** Angular Live Development Server is listening on localhost:4200, open your browser on http://localhost:4200/ **
+```
+
+Abre tu navegador en: **http://localhost:4200**
+
+### 1.5 Scripts Disponibles
+
+El proyecto incluye los siguientes scripts en `package.json`:
+
+| Script | Comando | Descripción |
+|--------|---------|-------------|
+| `start` | `npm start` | Inicia el servidor de desarrollo |
+| `build` | `npm run build` | Compila la aplicación para producción |
+| `watch` | `npm run watch` | Compila en modo watch (desarrollo) |
+| `test` | `npm test` | Ejecuta las pruebas unitarias |
+| `lint` | `npm run lint` | Ejecuta el linter de código |
+
+### 1.6 Solución de Problemas Comunes
+
+#### Error: Puerto 4200 ya está en uso
+
+Si el puerto 4200 está ocupado, puedes usar otro puerto:
+
+```bash
+ng serve --port 4201
+```
+
+#### Error: Módulos no encontrados
+
+Si encuentras errores de módulos no encontrados, reinstala las dependencias:
+
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+
+#### Error: Permisos denegados
+
+Si tienes problemas de permisos en Linux/Mac:
+
+```bash
+sudo npm install
+```
+
+O mejor aún, configura npm para no usar sudo:
+
+```bash
+mkdir ~/.npm-global
+npm config set prefix '~/.npm-global'
+export PATH=~/.npm-global/bin:$PATH
+```
+
+#### Error: Versión de Node.js incompatible
+
+Verifica tu versión de Node.js:
+
+```bash
+node --version
+```
+
+Si es menor a 18.x, actualiza Node.js desde [nodejs.org](https://nodejs.org/)
+
+### 1.7 Estructura del Proyecto
+
+```
+crm-web-app/
+├── src/
+│   ├── app/
+│   │   ├── components/          # Componentes reutilizables
+│   │   ├── features/            # Features de la aplicación (lazy-loaded)
+│   │   ├── services/            # Servicios de negocio
+│   │   ├── guards/              # Guards de routing
+│   │   ├── interfaces/          # Interfaces TypeScript
+│   │   ├── utils/               # Utilidades, validators, pipes
+│   │   └── layout/              # Componentes de layout
+│   ├── assets/                  # Recursos estáticos
+│   ├── environments/            # Variables de entorno
+│   └── styles.css               # Estilos globales
+├── angular.json                  # Configuración de Angular
+├── package.json                  # Dependencias y scripts
+├── tsconfig.json                # Configuración de TypeScript
+├── tailwind.config.js           # Configuración de Tailwind CSS
+└── README.md                     # Esta documentación
+```
+
+### 1.8 Comandos Útiles
+
+#### Ver logs del servidor
+
+El servidor muestra logs en tiempo real en la terminal donde lo ejecutaste.
+
+#### Detener el servidor
+
+Presiona `Ctrl + C` en la terminal donde está corriendo el servidor.
+
+#### Limpiar caché y reconstruir
+
+```bash
+rm -rf .angular node_modules/.cache
+npm start
+```
+
+#### Verificar que todo está correcto
+
+```bash
+npm run lint        # Verifica el código
+npm test            # Ejecuta las pruebas
+```
+
+---
+
+## 2. ANÁLISIS ARQUITECTÓNICO Y ESTRUCTURAL
+
+### 2.1 Arquitectura General
 
 La aplicación CRM está construida con **Angular 19** siguiendo una arquitectura modular basada en features. Utiliza:
 
@@ -31,7 +244,7 @@ La aplicación CRM está construida con **Angular 19** siguiendo una arquitectur
 - **Notificaciones**: NotificationAPI SDK para notificaciones en tiempo real
 - **Monitoreo**: Sentry (configurado pero comentado en producción)
 
-### 1.2 Estructura de Carpetas
+### 2.2 Estructura de Carpetas
 
 ```
 src/app/
@@ -105,7 +318,7 @@ src/app/
     └── sidebar/
 ```
 
-### 1.3 Patrones Arquitectónicos
+### 2.3 Patrones Arquitectónicos
 
 #### 1.3.1 Feature-Based Architecture
 Cada feature es un módulo independiente con:
@@ -134,7 +347,7 @@ Uso extensivo de Angular Signals para:
 - Gestión de permisos (`UserPermissionsService`)
 - Estado de formularios y UI
 
-### 1.4 Módulos Principales y Responsabilidades
+### 2.4 Módulos Principales y Responsabilidades
 
 | Módulo | Responsabilidad | Permisos Requeridos |
 |--------|----------------|---------------------|
@@ -150,7 +363,7 @@ Uso extensivo de Angular Signals para:
 | **Users** | Gestión de usuarios del sistema | `LIST_USER` |
 | **Email** | Envío de emails a bancos | `SEND_EMAIL_BANK` |
 
-### 1.5 Dependencias entre Módulos
+### 2.5 Dependencias entre Módulos
 
 ```mermaid
 graph TD
@@ -171,7 +384,7 @@ graph TD
     J -->|gestiona| D
 ```
 
-### 1.6 Estructura de Routing y Navegación
+### 2.6 Estructura de Routing y Navegación
 
 El routing está centralizado en `app.routes.ts` con:
 - **Lazy Loading**: Cada feature se carga bajo demanda
@@ -186,7 +399,7 @@ El routing está centralizado en `app.routes.ts` con:
 5. Si no tiene permisos → redirige a `/applications`
 6. Si tiene permisos → carga el módulo lazy
 
-### 1.7 Guards, Interceptors y Middlewares
+### 2.7 Guards, Interceptors y Middlewares
 
 #### Guards
 - **AuthGuard** (Auth0): Verifica que el usuario esté autenticado
@@ -203,9 +416,9 @@ El routing está centralizado en `app.routes.ts` con:
 
 ---
 
-## 2. ANÁLISIS DE LÓGICA DE NEGOCIO POR MÓDULO
+## 3. ANÁLISIS DE LÓGICA DE NEGOCIO POR MÓDULO
 
-### 2.1 MÓDULO: APPLICATIONS (Aplicaciones)
+### 3.1 MÓDULO: APPLICATIONS (Aplicaciones)
 
 #### a) Propósito y Funcionalidad
 

@@ -1,0 +1,780 @@
+# CRM Web Application - Contexto para AI
+
+## Descripción General
+Esta es una aplicación CRM especializada en gestión de préstamos comerciales, construida con Angular 19. El sistema gestiona el ciclo completo desde leads hasta comisiones, incluyendo contactos, empresas, aplicaciones de préstamo, bancos y ofertas.
+
+## Arquitectura
+
+### Stack Tecnológico
+- **Framework**: Angular 19.1.4 (standalone components)
+- **Autenticación**: Auth0 (@auth0/auth0-angular)
+- **Estilos**: Tailwind CSS
+- **Estado**: Angular Signals (no NgRx)
+- **Notificaciones**: NotificationAPI SDK
+- **Monitoreo**: Sentry (configurado pero comentado)
+
+### Estructura de Carpetas
+- `features/`: Módulos de negocio (lazy-loaded)
+- `components/`: Componentes reutilizables compartidos
+- `services/`: Servicios de negocio (CRUD operations)
+- `interfaces/`: TypeScript interfaces por dominio
+- `guards/`: Guards de routing (AuthGuard, PermissionGuard)
+- `utils/`: Utilidades, validators, pipes, servicios compartidos
+
+### Patrones Arquitectónicos
+
+#### 1. Feature-Based Architecture
+- Organización por dominios de negocio (features) en lugar de por tipo de archivo
+- Cada feature es independiente y lazy-loaded
+- Alta cohesión, bajo acoplamiento
+- Fácil escalabilidad y colaboración en equipo
+
+#### 2. Service Layer Pattern
+- Separación clara entre presentación y lógica de negocio
+- Servicios en `services/` para operaciones CRUD
+- Servicios utilitarios en `utils/services/`
+- HttpService como wrapper del HttpClient
+
+#### 3. Component-Based Architecture
+- **Smart Components**: Gestionan estado y lógica (ApplicationsComponent, ApplicationsDetailsComponent)
+- **Dumb Components**: Solo presentación (CustomInputComponent, PaginationComponent)
+- **Feature Components**: Específicos de cada feature (SendToBanksComponent, OffersComponent)
+
+#### 4. Reactive Programming Pattern
+- **Signals**: Estado reactivo local con `signal()` y `computed()`
+- **Observables**: Flujos asíncronos con RxJS
+- No hay estado global centralizado (no NgRx)
+
+#### 5. Dependency Injection Pattern
+- Servicios con `providedIn: 'root'` (singleton)
+- Guards e Interceptors inyectados globalmente
+- Facilita testing y mantenimiento
+
+#### 6. Guard Pattern
+- `AuthGuard` (Auth0): Verifica autenticación
+- `PermissionGuard`: Valida permisos antes de activar rutas
+- `CanDeactivateWithoutNote`: Previene salida sin notas requeridas
+
+#### 7. Interceptor Pattern
+- `authHttpInterceptorFn` (Auth0): Inyecta JWT tokens automáticamente
+- Headers personalizados en HttpService (X-Tenant, Accept-Language)
+
+#### 8. Repository Pattern (Variante)
+- Servicios actúan como repositorios, abstraen acceso a datos
+- HttpService como capa de abstracción sobre HttpClient
+
+### Separación de Responsabilidades
+
+#### Capa 1: Presentación (Presentation Layer)
+- **Responsabilidad**: UI e interacción con usuario
+- **Componentes**: `features/*/components/`, `components/`, `layout/`
+- **Características**: Solo muestra datos, captura input, delega lógica a servicios
+
+#### Capa 2: Lógica de Negocio (Business Logic Layer)
+- **Responsabilidad**: Reglas de negocio, validaciones, transformaciones
+- **Servicios**: `services/*.service.ts`, `utils/services/*.service.ts`
+- **Características**: Validaciones de negocio, transformaciones de datos, orquestación
+
+#### Capa 3: Acceso a Datos (Data Access Layer)
+- **Responsabilidad**: Comunicación con APIs externas
+- **Servicios**: `HttpService`, `ErrorHandlerService`
+- **Características**: Abstracción sobre HttpClient, manejo centralizado de errores, headers
+
+#### Capa 4: Estado (State Layer)
+- **Responsabilidad**: Gestión de estado de la aplicación
+- **Implementación**: Signals locales, Service State, Computed Signals
+- **Características**: No hay estado global centralizado, estado distribuido por feature
+
+#### Capa 5: Utilidades (Utilities Layer)
+- **Responsabilidad**: Funciones y servicios compartidos
+- **Componentes**: `utils/function/`, `utils/validators/`, `utils/services/`, `pipes/`
+
+#### Capa 6: Integración Externa (External Integration Layer)
+- **Responsabilidad**: Integración con servicios externos
+- **Integraciones**: Auth0, NotificationAPI, VoIP, Sentry
+
+### Decisiones de Diseño
+
+#### Feature-Based vs MVC Tradicional
+- **Decisión**: Feature-Based Architecture
+- **Razones**: Escalabilidad, mantenibilidad, lazy loading, colaboración
+- **Trade-offs**: Posible duplicación (mitigado con componentes compartidos)
+
+#### Signals vs NgRx
+- **Decisión**: Angular Signals en lugar de NgRx
+- **Razones**: Simplicidad, nativo, performance, menos boilerplate
+- **Trade-offs**: Sin estado global, sincronización manual (mitigado con servicios de estado por feature)
+
+#### Standalone Components vs NgModules
+- **Decisión**: Standalone Components (Angular 19)
+- **Razones**: Moderno, menos boilerplate, mejor tree-shaking, lazy loading más simple
+
+#### HttpService Wrapper vs HttpClient Directo
+- **Decisión**: HttpService wrapper
+- **Razones**: Centralización de errores, headers consistentes, abstracción, testing
+- **Trade-offs**: Capa adicional (mitigado: wrapper delgado)
+
+#### FormData para Archivos
+- **Decisión**: FormData para requests con archivos
+- **Razones**: Estándar, soporte nativo, backend compatible
+- **Estructura**: `body` (JSON string) + `documents` (files)
+
+#### Permission-Based vs Role-Based
+- **Decisión**: Permisos granulares (permission-based)
+- **Razones**: Flexibilidad, escalabilidad, granularidad (own vs all), JWT-based
+- **Trade-offs**: Más complejidad (mitigado: enum centralizado, guards reutilizables)
+
+#### Lazy Loading de Features
+- **Decisión**: Lazy loading de todos los features
+- **Razones**: Performance, bundle size, escalabilidad
+- **Trade-offs**: Latencia primera carga (mitigado: code splitting automático)
+
+### Diagramas de Arquitectura
+
+#### Diagrama de Alto Nivel - Arquitectura Completa
+
+```mermaid
+graph TB
+    subgraph "Client Browser"
+        A[Angular App]
+        B[Auth0 SDK]
+        C[NotificationAPI SDK]
+    end
+    
+    subgraph "Application Core"
+        D[Routing Layer]
+        E[Feature Modules]
+        F[Shared Components]
+        G[Service Layer]
+    end
+    
+    subgraph "State Management"
+        H[Angular Signals]
+        I[Local Component State]
+        J[Service State]
+    end
+    
+    subgraph "External Services"
+        K[Auth0 API]
+        L[Backend API]
+        M[NotificationAPI]
+        N[VoIP Service]
+    end
+    
+    A --> D
+    D --> E
+    E --> F
+    E --> G
+    G --> H
+    H --> I
+    H --> J
+    
+    B --> K
+    G --> L
+    C --> M
+    G --> N
+    
+    D -.->|Guards| B
+    G -.->|Interceptors| B
+```
+
+#### Separación de Responsabilidades por Capas
+
+```mermaid
+graph TB
+    subgraph "Presentation Layer"
+        A[Components] --> B[Layout Components]
+        A --> C[Feature Components]
+        A --> D[Shared Components]
+    end
+    
+    subgraph "Business Logic Layer"
+        E[Feature Services] --> F[Domain Services]
+        F --> G[HttpService]
+    end
+    
+    subgraph "Data Access Layer"
+        G --> H[HTTP Client]
+        H --> I[Auth0 Interceptor]
+        I --> J[Backend API]
+    end
+    
+    subgraph "Cross-Cutting Concerns"
+        K[Guards] --> L[PermissionGuard]
+        K --> M[AuthGuard]
+        N[Utils Services] --> O[ErrorHandler]
+        N --> P[NotificationService]
+        N --> Q[UserPermissionsService]
+    end
+    
+    A --> E
+    E --> N
+    K --> A
+```
+
+#### Flujo de Datos entre Capas
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant C as Component
+    participant S as Service
+    participant H as HttpService
+    participant I as Interceptor
+    participant API as Backend API
+    
+    U->>C: User Action
+    C->>S: Call Service Method
+    S->>H: HTTP Request
+    H->>I: Intercept Request
+    I->>I: Add Auth Token
+    I->>I: Add Headers (X-Tenant, Accept-Language)
+    I->>API: Send Request
+    API-->>I: Response
+    I-->>H: Response
+    H->>H: Handle Errors
+    H-->>S: Observable<T>
+    S->>S: Transform Data (if needed)
+    S-->>C: Observable<T>
+    C->>C: Update Signal State
+    C->>U: Update UI
+```
+
+#### Integraciones Externas
+
+```mermaid
+graph LR
+    subgraph "CRM Application"
+        A[App Component]
+        B[Features]
+        C[Services]
+    end
+    
+    subgraph "Auth0"
+        D[Authentication]
+        E[JWT Tokens]
+        F[Permissions]
+    end
+    
+    subgraph "Backend API"
+        G[REST Endpoints]
+        H[Business Logic]
+        I[Database]
+    end
+    
+    subgraph "NotificationAPI"
+        J[WebSocket]
+        K[Push Notifications]
+    end
+    
+    subgraph "VoIP Service"
+        L[Call API]
+    end
+    
+    A -->|Auth Flow| D
+    D -->|JWT| E
+    E -->|Decode| F
+    C -->|HTTP + Token| G
+    G --> H
+    H --> I
+    A -->|SDK| J
+    J -->|Real-time| K
+    C -->|POST| L
+```
+
+#### Arquitectura de Features
+
+```mermaid
+graph LR
+    subgraph "Feature: Applications"
+        AppList[ApplicationsComponent]
+        AppDetails[ApplicationsDetailsComponent]
+        CreateApp[CreateApplicationComponent]
+        AppService[ApplicationsService]
+        AppState[ApplicationDetailsService]
+        AppRoutes[Routes]
+    end
+    
+    subgraph "Feature: Contacts"
+        ContactList[ContactsComponent]
+        ContactDetails[ContactDetailsComponent]
+        CreateContact[CreateContactComponent]
+        ContactService[ContactService]
+        ContactRoutes[Routes]
+    end
+    
+    subgraph "Shared"
+        HttpService[HttpService]
+        PermService[UserPermissionsService]
+        ConfigService[BusinessConfigService]
+        SharedComponents[Shared Components]
+    end
+    
+    AppList --> AppService
+    AppDetails --> AppService
+    AppDetails --> AppState
+    CreateApp --> AppService
+    AppService --> HttpService
+    AppState --> AppService
+    
+    ContactList --> ContactService
+    ContactDetails --> ContactService
+    CreateContact --> ContactService
+    ContactService --> HttpService
+    
+    AppList --> PermService
+    ContactList --> PermService
+    AppList --> ConfigService
+    ContactList --> ConfigService
+    
+    AppList --> SharedComponents
+    ContactList --> SharedComponents
+```
+
+## Módulos Principales
+
+### Applications (Aplicaciones)
+- **Propósito**: Gestión de solicitudes de préstamo comercial
+- **Estados**: READY_TO_SEND → SENT → OFFERED → OFFER_ACCEPTED → COMPLETED
+- **Operaciones clave**: createApplication, sendAppToBanks, acceptOffer, completeApplication
+- **Permisos**: CREATE_APPLICATION, READ_APPLICATION, LIST_APPLICATIONS, SEND_APPLICATION, etc.
+
+### Leads (Prospectos)
+- **Propósito**: Gestión de leads/prospectos antes de convertirlos en contactos
+- **Operaciones clave**: createLead (desde CSV/Excel), searchProspects, addProspectNote
+- **Flujo**: LeadGroup → Prospects → Contacts
+
+### Contacts (Contactos)
+- **Propósito**: Gestión de personas físicas (miembros de empresas o independientes)
+- **Validaciones**: Edad 21-99, máx 5 teléfonos/emails, máx 6 documentos
+- **Operaciones clave**: createContact, updateContact, addFile, createNote
+- **Relación**: Pueden ser miembros de múltiples Companies
+
+### Companies (Empresas)
+- **Propósito**: Gestión de empresas que solicitan préstamos
+- **Validaciones**: Máx 10 miembros, máx 4 documentos por tipo
+- **Operaciones clave**: createCompany, updateCompany, addFile, createNote
+- **Relación**: 1 Company → N Applications
+
+### Banks (Bancos)
+- **Propósito**: Gestión de instituciones financieras (lenders/brokers)
+- **Operaciones clave**: createBank, getBankOffers, blacklistBank, sendEmailToBanks
+- **Relación**: N Banks → N Applications (vía BankNotifications)
+
+### Commissions (Comisiones)
+- **Propósito**: Distribución de comisiones cuando se acepta una oferta
+- **Estructura**: PSF + Commission, cada uno con distribución a múltiples usuarios
+- **Estados**: DRAFT → PUBLISHED
+- **Operaciones clave**: saveCommission, publishCommission
+
+### Campaigns (Campañas)
+- **Propósito**: Campañas de marketing que generan leads
+- **Estados**: STOPPED ↔ STARTED
+- **Operaciones clave**: createCampaign, startCampaign, stopCampaign
+
+### Drafts (Borradores)
+- **Propósito**: Aplicaciones guardadas como borradores antes de enviar
+- **Operaciones clave**: updateDraft, publishDraft (convierte a Application)
+
+## Flujos de Negocio Principales
+
+### Flujo: Lead → Contact → Company → Application
+1. Importar Leads (CSV/Excel) → LeadGroup con Prospects
+2. Gestionar Prospects (llamadas, notas)
+3. Convertir Prospect → Contact
+4. Crear/Asociar Company → Asociar Contact como miembro
+5. Crear Application desde Company
+6. Enviar Application a Banks
+7. Banks responden con Offers
+8. Aceptar Offer → Commission creada
+9. Publicar Commission → Application completada
+
+### Flujo: Crear y Enviar Aplicación
+1. Seleccionar Company
+2. Completar formulario (monto, producto, referral)
+3. Subir documentos (bank statements, MTD, credit card, filled apps, additional statements)
+4. Crear aplicación (estado: READY_TO_SEND)
+5. Establecer posición (1-5)
+6. Seleccionar bancos destino
+7. Enviar a bancos (estado: SENT)
+8. Recibir ofertas (estado: OFFERED)
+9. Aceptar oferta (estado: OFFER_ACCEPTED)
+10. Comisión creada automáticamente
+11. Completar aplicación (estado: COMPLETED)
+
+## Sistema de Permisos
+
+### Estructura
+- Los permisos vienen en el JWT token de Auth0 (claim `permissions`)
+- `UserPermissionsService` decodifica y almacena permisos
+- `PermissionGuard` valida permisos antes de activar rutas
+
+### Tipos de Permisos
+- **"own" permissions**: Ver solo recursos propios (ej: LIST_OWN_APPLICATIONS)
+- **"all" permissions**: Ver todos los recursos (ej: LIST_APPLICATIONS)
+- **CRUD permissions**: CREATE, READ, UPDATE, DELETE por entidad
+- **Action permissions**: SEND_APPLICATION, TRANSFER_APPLICATION, etc.
+
+### Guards
+- `AuthGuard` (Auth0): Verifica autenticación
+- `PermissionGuard`: Valida permisos específicos
+- `CanDeactivateWithoutNote`: Previene salida sin notas requeridas
+
+## Servicios y API
+
+### Patrón de Servicios
+- Cada entidad tiene un servicio dedicado (ApplicationsService, ContactService, etc.)
+- Los servicios usan `HttpService` (wrapper del HttpClient)
+- FormData se usa para requests con archivos
+- Todos los endpoints están bajo `/v1/`
+
+### Endpoints Principales
+- Applications: `/v1/applications`
+- Contacts: `/v1/contacts`
+- Companies: `/v1/companies`
+- Banks: `/v1/banks`
+- Leads: `/v1/leads`
+- Commissions: `/v1/commissions`
+- Campaigns: `/v1/campaigns`
+- Drafts: `/v1/drafts`
+- Users: `/v1/users`
+
+## Componentes Reutilizables
+
+### Inputs (`components/inputs/`)
+- CustomInputComponent, CustomSelectComponent, CustomTextareaComponent
+- CustomDatePickerComponent, CustomPhoneInputComponent
+- CustomFilePickerComponent, etc.
+
+### Otros Componentes
+- ModalComponent: Modal reutilizable
+- PaginationComponent: Paginación estándar
+- NoteComponent: Crear/ver notas con niveles (INFO, WARNING, CRITICAL)
+- CallablePhoneComponent: Teléfono clickeable para llamar
+- NotificationComponent: Notificaciones toast
+- UserNotificationsComponent: Notificaciones en tiempo real (NotificationAPI)
+
+## Integraciones Externas
+
+### Auth0
+- Autenticación y autorización
+- Permisos en JWT token
+- Interceptor HTTP inyecta tokens automáticamente
+
+### NotificationAPI
+- Notificaciones push en tiempo real
+- WebSocket para actualizaciones
+- Sonido de notificación
+
+### VoIP
+- Sistema de llamadas telefónicas
+- VoIPService hace requests a `/v1/users/make-a-call`
+- Componentes de teléfono integrados
+
+### Sentry
+- Monitoreo de errores (configurado pero comentado)
+
+## Validaciones y Reglas de Negocio
+
+### Applications
+- Monto: $1,000 - $20,000,000
+- Máximo 5 additional statements
+- Debe tener company asociada
+- Solo READY_TO_SEND puede enviarse a bancos
+
+### Contacts
+- Edad: 21-99 años
+- Máximo 5 teléfonos
+- Máximo 5 emails
+- Máximo 6 documentos totales
+- Máximo 4 documentos por tipo
+
+### Companies
+- Máximo 10 miembros
+- Máximo 4 documentos por tipo
+- Tamaño máximo de archivo: 10MB
+
+### Notes
+- Niveles: INFO, WARNING, CRITICAL
+- Algunos módulos requieren nota antes de salir (si no tiene permiso READ_*_WITHOUT_NOTE)
+
+## Estados y Transiciones
+
+### Application Status
+```
+READY_TO_SEND → SENT → OFFERED → OFFER_ACCEPTED → COMPLETED
+                              ↓
+                          REJECTED
+```
+
+### BankNotification Status
+```
+PENDING → SENT → OFFERED → ACCEPTED
+                    ↓
+                REJECTED
+```
+
+### Commission Status
+```
+DRAFT → PUBLISHED
+```
+
+### Campaign Status
+```
+STOPPED ↔ STARTED
+```
+
+## Convenciones de Código
+
+### Naming
+- Servicios: `*Service` (ApplicationsService, ContactService)
+- Componentes: `*Component` (ApplicationsComponent, CreateContactComponent)
+- Interfaces: PascalCase (Application, Contact, Company)
+- Permisos: `ACTION:ENTITY` (CREATE_APPLICATION, LIST_CONTACTS)
+
+### Estado Reactivo
+- Usar Angular Signals para estado local
+- `signal()` para valores mutables
+- `computed()` para valores derivados
+- `toSignal()` para convertir Observables
+
+### Formularios
+- Reactive Forms (FormBuilder)
+- Validators personalizados en `utils/validators/`
+- FormData para requests con archivos
+
+### Manejo de Errores
+- ErrorHandlerService para manejo centralizado
+- catchError en observables
+- Redirección a rutas por defecto en 404
+
+## Consideraciones Importantes
+
+1. **Permisos**: Siempre verificar permisos antes de mostrar/ejecutar acciones
+2. **Archivos**: Usar FormData para requests con archivos
+3. **Estados**: Respetar transiciones de estado (no saltar estados inválidos)
+4. **Notas**: Algunos módulos requieren notas antes de salir
+5. **Transferencias**: Las entidades pueden transferirse entre usuarios
+6. **Own vs All**: Diferenciar entre permisos "own" y "all"
+7. **Lazy Loading**: Los features se cargan bajo demanda
+8. **Signals**: Preferir Signals sobre Observables para estado local
+
+## Contexto de Negocio
+
+### Propósito del Sistema
+Facilitar la gestión completa del proceso de préstamos comerciales, desde la generación de leads hasta el cierre y distribución de comisiones.
+
+### Usuarios Típicos
+- **Agentes/Brokers**: Gestionan sus propios leads, contacts, companies y applications
+- **Supervisores**: Supervisan todo el equipo
+- **Administradores**: Gestionan bancos, usuarios, permisos
+- **Marketing**: Crea campañas y genera leads
+
+### Flujo Típico de Trabajo
+1. Marketing crea campaña → genera leads
+2. Agente trabaja leads → convierte a contacts/companies
+3. Agente crea application desde company
+4. Agente envía application a múltiples banks
+5. Banks responden con offers
+6. Agente acepta offer → commission creada
+7. Administrador configura y publica commission
+8. Application se completa
+
+## Análisis Profundo: Módulo Applications
+
+### Contexto de Negocio
+**Problema que Resuelve**:
+- Centralización de solicitudes de préstamo dispersas en emails/hojas de cálculo
+- Gestión del ciclo de vida completo desde creación hasta cierre
+- Coordinación con múltiples bancos simultáneamente
+- Gestión compleja de documentos (bank statements, MTD, credit card, filled apps)
+- Trazabilidad y auditoría completa de cambios
+
+**Usuarios**:
+- **Agentes/Brokers**: Crean, envían y gestionan aplicaciones de sus clientes
+- **Supervisores**: Supervisan aplicaciones del equipo, transfieren entre agentes
+- **Administradores**: Acceso completo, pueden eliminar aplicaciones en READY_TO_SEND
+
+### Estructura Técnica
+
+**Features Principales**:
+- `applications/`: Lista de aplicaciones con búsqueda, filtros y paginación
+- `applications-details/`: Vista detallada con tabs (notifications, history, banks, notes)
+- `create-application/`: Formulario multi-paso (3 pasos) para crear aplicación
+
+**Servicios Clave**:
+- `ApplicationsService`: Comunicación con API backend (CRUD completo)
+- `ApplicationDetailsService`: Gestión de estado local con Signals
+- `CreateApplicationService`: Gestión de formulario multi-paso reactivo
+
+**Componentes Principales**:
+- `SendToBanksComponent`: Selección de bancos y envío
+- `BankNotificationsComponent`: Gestión de notificaciones y ofertas
+- `OffersComponent`: Gestión de ofertas (aceptar, rechazar, actualizar)
+- `CompleteApplicationComponent`: Completar aplicación
+- `RejectApplicationComponent`: Rechazar aplicación
+- `PositionSelectorComponent`: Establecer posición (1-5)
+- `UpdateStatusComponent`: Actualizar subestado
+
+### Estados y Transiciones
+
+**Application Status**:
+```
+READY_TO_SEND → SENT → OFFERED → OFFER_ACCEPTED → COMPLETED
+                              ↓
+                          REJECTED
+```
+
+**BankNotification Status**:
+```
+PENDING → SENT → OFFERED → ACCEPTED
+                    ↓
+                REJECTED
+```
+
+**Transiciones Válidas**:
+- `READY_TO_SEND → SENT`: Al enviar a bancos (requiere posición 1-5)
+- `SENT → OFFERED`: Banco envía oferta
+- `SENT → REJECTED`: Banco rechaza
+- `OFFERED → OFFER_ACCEPTED`: Usuario acepta oferta
+- `OFFERED → REJECTED`: Usuario rechaza todas las ofertas
+- `OFFER_ACCEPTED → COMPLETED`: Completar manualmente
+- Cualquier estado → `REJECTED`: Rechazar aplicación
+
+### Reglas de Negocio Críticas
+
+**Crear Aplicación**:
+1. Monto: $1,000 - $20,000,000 (solo números enteros)
+2. Bank Statements: 4 períodos requeridos (calculados dinámicamente)
+3. MTD Statement: 1 período opcional
+4. Credit Card Statements: 3 períodos opcionales
+5. Additional Statements: Máximo 5 opcionales
+6. Validación: No se permiten archivos duplicados (mismo nombre)
+7. Cálculo de períodos: Si company tiene aplicaciones previas, usa último período válido
+
+**Enviar a Bancos**:
+1. Solo aplicaciones en `READY_TO_SEND` pueden enviarse
+2. Debe tener posición establecida (1-5)
+3. Mensaje opcional: 15-800 caracteres
+4. Puede enviarse a múltiples bancos simultáneamente
+5. Backend crea una BankNotification por cada banco
+
+**Gestionar Ofertas**:
+1. Un banco puede enviar múltiples ofertas
+2. Solo una oferta puede estar aceptada por notificación
+3. Al aceptar oferta: se crea automáticamente Commission en estado DRAFT
+4. Ofertas pueden actualizarse antes de aceptar
+5. Ofertas aceptadas pueden cancelarse (status: ON_HOLD)
+
+**Eliminación y Transferencia**:
+1. Solo aplicaciones en `READY_TO_SEND` pueden eliminarse
+2. No puede transferirse si está en estado `COMPLETED`
+3. Requiere permisos específicos (DELETE_APPLICATION, TRANSFER_APPLICATION)
+
+### Flujos Principales
+
+**Flujo: Crear Aplicación**:
+1. Paso 1: Seleccionar Company → calcular períodos → completar monto, producto, referral
+2. Paso 2: Subir 4 bank statements (períodos calculados)
+3. Paso 3: Subir MTD, credit card statements, additional statements (opcionales)
+4. Validar: no archivos duplicados, todos los documentos requeridos
+5. Crear: FormData con JSON body + archivos → POST /v1/applications
+6. Resultado: Aplicación en estado `READY_TO_SEND`
+
+**Flujo: Enviar a Bancos**:
+1. Establecer posición (1-5) si no tiene
+2. Cargar bancos: recomendados o búsqueda manual
+3. Seleccionar bancos (múltiples)
+4. Escribir mensaje (15-800 caracteres)
+5. Enviar: PUT /v1/applications/:id/notifications
+6. Backend crea BankNotifications (una por banco)
+7. Estado: `READY_TO_SEND → SENT`
+
+**Flujo: Gestionar Ofertas**:
+1. Bancos responden con ofertas → Estado: `SENT → OFFERED`
+2. Usuario compara ofertas (monto, factor rate, commission, payment plan)
+3. Aceptar oferta: PUT /v1/applications/:id/notifications/:nId/accept/:offerId
+4. Estado: `OFFERED → OFFER_ACCEPTED`
+5. Commission creada automáticamente (DRAFT)
+6. Actualizar substatus según progreso (CONTRACT_REQUESTED, CONTRACT_SIGNED, etc.)
+7. Completar: PUT /v1/applications/:id/complete → Estado: `COMPLETED`
+
+### Integraciones con Otros Módulos
+
+**Companies**:
+- Applications requiere Company existente
+- Obtiene `lastValidPeriod` para calcular períodos
+- Muestra información de company en detalles
+- Link bidireccional entre application y company
+
+**Banks**:
+- Obtiene lista de bancos disponibles
+- Obtiene bancos recomendados para la aplicación
+- Crea BankNotifications al enviar
+- Recibe ofertas de bancos
+
+**Commissions**:
+- Se crea automáticamente al aceptar oferta
+- Estado inicial: DRAFT
+- Link a commission details desde application details
+
+**Contacts**:
+- Relación indirecta a través de Companies
+- Los miembros de company son Contacts
+- Se muestran en application details
+
+### Validaciones Específicas
+
+**Formulario Multi-Paso**:
+- Paso 1: Company, monto, producto son requeridos
+- Paso 2: Todos los bank statements deben tener archivo
+- Paso 3: MTD y credit card opcionales, pero si se suben deben ser válidos
+- Validación global: No archivos duplicados
+
+**Documentos**:
+- Bank statements: 4 períodos requeridos
+- Períodos calculados dinámicamente basados en última aplicación de company
+- Si no hay aplicaciones previas, usa últimos 4 períodos desde hoy
+
+**Mensaje a Bancos**:
+- Mínimo: 15 caracteres
+- Máximo: 800 caracteres
+- Requerido
+
+### Casos Edge Importantes
+
+1. **Archivos Duplicados**: Validación previene subir archivos con mismo nombre
+2. **Company Sin Aplicaciones Previas**: Usa períodos estándar (últimos 4 desde hoy)
+3. **Banco en Blacklist**: No aparece en recomendados, backend rechazará envío
+4. **Aplicación Bloqueada**: Si está COMPLETED o REJECTED, no puede editarse
+5. **Múltiples Ofertas Aceptadas**: Solo una por notificación, pero múltiples notificaciones pueden tener ofertas aceptadas
+6. **Sincronización de Estados**: Al aceptar oferta, se actualiza automáticamente estado de aplicación
+
+### Endpoints API Principales
+
+- `GET /v1/applications`: Lista aplicaciones (con paginación y búsqueda)
+- `GET /v1/applications/:id`: Obtiene detalles completos
+- `POST /v1/applications`: Crea aplicación (FormData: body + documents)
+- `PUT /v1/applications/:id/notifications`: Envía a bancos
+- `GET /v1/applications/:id/notifications`: Obtiene notificaciones
+- `PUT /v1/applications/:id/notifications/:nId/accept/:offerId`: Acepta oferta
+- `PUT /v1/applications/:id/notifications/:nId/cancel/:offerId`: Cancela oferta
+- `PUT /v1/applications/:id/notifications/:nId/update/:offerId`: Actualiza oferta
+- `PATCH /v1/applications/:id/reject`: Rechaza aplicación
+- `PUT /v1/applications/:id/complete`: Completa aplicación
+- `PUT /v1/applications/:id/substatus`: Actualiza subestado
+- `PATCH /v1/applications/:id/position/:position`: Actualiza posición
+- `DELETE /v1/applications/:id`: Elimina aplicación
+- `PUT /v1/applications/:id/transfer-to/:userId`: Transfiere aplicación
+- `GET /v1/applications/:id/recommended-banks`: Obtiene bancos recomendados
+- `GET /v1/last-application-period/:companyId`: Último período válido
+
+### Consideraciones de Implementación
+
+1. **FormData**: Todos los requests con archivos usan FormData (body JSON + archivos)
+2. **Signals**: Estado local gestionado con Angular Signals (ApplicationDetailsService)
+3. **Validación de Períodos**: Se calcula dinámicamente cuando cambia la company seleccionada
+4. **Sincronización**: Estados de aplicación y notificaciones se sincronizan automáticamente
+5. **Permisos**: Cada acción verifica permisos antes de ejecutarse
+6. **Error Handling**: Manejo centralizado con ErrorHandlerService, redirección en 404
+

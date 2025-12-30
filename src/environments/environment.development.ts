@@ -1,5 +1,5 @@
 export const environment = {
-  BASE_API: 'https://crm-core-service.fly.dev/core-service',
+  BASE_API: 'http://localhost:8080/core-service',
   AUTH0_DOMAIN: 'businessmarketfinders.us.auth0.com',
   AUTH0_CLIENT_ID: 'KOwgRAn7VY4kHAug7LwnIK0l3Ufek2og',
   AUTH0_AUDIENCE_DOMAIN: 'https://crm-core-service.fly.dev/core-service/v1/',

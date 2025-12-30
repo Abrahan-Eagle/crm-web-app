@@ -1,484 +1,25 @@
 # CRM Web Application - Análisis Exhaustivo
 
 ## Índice
-1. [Instalación y Configuración](#1-instalación-y-configuración)
-2. [Análisis Arquitectónico y Estructural](#2-análisis-arquitectónico-y-estructural)
-3. [Análisis de Lógica de Negocio por Módulo](#3-análisis-de-lógica-de-negocio-por-módulo)
-4. [Diagramas de Flujo](#4-diagramas-de-flujo)
-5. [Análisis de Servicios y API](#5-análisis-de-servicios-y-api)
-6. [Análisis de Componentes Reutilizables](#6-análisis-de-componentes-reutilizables)
-7. [Integraciones Externas](#7-integraciones-externas)
-8. [Casos de Uso de Negocio](#8-casos-de-uso-de-negocio)
-9. [Diagrama de Entidades y Relaciones](#9-diagrama-de-entidades-y-relaciones)
-10. [Análisis de Estados y Workflows](#10-análisis-de-estados-y-workflows)
-11. [Resumen Ejecutivo](#11-resumen-ejecutivo)
-12. [Análisis Profundo: Módulo Applications](#12-análisis-profundo-módulo-applications)
-13. [Flujos Completos de Procesos - Trazabilidad Detallada](#13-flujos-completos-de-procesos---trazabilidad-detallada)
-14. [Análisis de Arquitectura Completa](#14-análisis-de-arquitectura-completa)
+1. [Análisis Arquitectónico y Estructural](#1-análisis-arquitectónico-y-estructural)
+2. [Análisis de Lógica de Negocio por Módulo](#2-análisis-de-lógica-de-negocio-por-módulo)
+3. [Diagramas de Flujo](#3-diagramas-de-flujo)
+4. [Análisis de Servicios y API](#4-análisis-de-servicios-y-api)
+5. [Análisis de Componentes Reutilizables](#5-análisis-de-componentes-reutilizables)
+6. [Integraciones Externas](#6-integraciones-externas)
+7. [Casos de Uso de Negocio](#7-casos-de-uso-de-negocio)
+8. [Diagrama de Entidades y Relaciones](#8-diagrama-de-entidades-y-relaciones)
+9. [Análisis de Estados y Workflows](#9-análisis-de-estados-y-workflows)
+10. [Resumen Ejecutivo](#10-resumen-ejecutivo)
+11. [Análisis Profundo: Módulo Applications](#11-análisis-profundo-módulo-applications)
+12. [Flujos Completos de Procesos - Trazabilidad Detallada](#12-flujos-completos-de-procesos---trazabilidad-detallada)
+13. [Análisis de Arquitectura Completa](#13-análisis-de-arquitectura-completa)
 
 ---
 
-## 1. INSTALACIÓN Y CONFIGURACIÓN
+## 1. ANÁLISIS ARQUITECTÓNICO Y ESTRUCTURAL
 
-### 1.1 Requisitos Previos
-
-Para levantar este proyecto necesitas tener instalado:
-
-- **Node.js**: Versión 18.x o superior
-- **npm**: Versión 9.x o superior (viene con Node.js)
-- **Angular CLI**: Se instala automáticamente como dependencia del proyecto
-
-### 1.2 Instalación
-
-#### Paso 1: Clonar el Repositorio
-
-```bash
-git clone https://github.com/Abrahan-Eagle/crm-web-app.git
-cd crm-web-app
-```
-
-#### Paso 2: Instalar Dependencias
-
-```bash
-npm install
-```
-
-Este comando instalará todas las dependencias necesarias:
-- Angular 19.1.4 y sus módulos
-- Auth0 SDK para autenticación
-- NotificationAPI SDK para notificaciones
-- Tailwind CSS para estilos
-- Otras dependencias del proyecto
-
-**Nota**: La primera instalación puede tardar varios minutos dependiendo de tu conexión a internet.
-
-#### Paso 3: Configurar Variables de Entorno
-
-**Para Desarrollo Local:**
-
-La aplicación usa variables de entorno dinámicas. El archivo `src/environments/environment.ts` lee las variables desde `window.env`.
-
-**Configuración del Backend:**
-
-1. Descarga el archivo `.env` del backend desde:
-   - https://share.1password.com/s#JDwStgwvXwI3brjWVAZdrNvGc2AJS-_88ruaqlgCqsk
-
-2. Configura el backend para que corra en tu local (por ejemplo, `http://localhost:3000`)
-
-3. En el frontend, apunta el `BASE_API` a tu backend local. Puedes modificar `src/environments/environment.development.ts`:
-
-```typescript
-export const environment = {
-  BASE_API: 'http://localhost:3000', // Tu backend local
-  AUTH0_DOMAIN: 'businessmarketfinders.us.auth0.com',
-  AUTH0_CLIENT_ID: 'KOwgRAn7VY4kHAug7LwnIK0l3Ufek2og',
-  AUTH0_AUDIENCE_DOMAIN: 'https://crm-core-service.fly.dev/core-service/v1/',
-  AUTH0_CONNECTION: 'Username-Password-Authentication',
-  SENTRY_DNS: 'https://8474086af6fd84b2df9bae4507b8afc2@o4508055918804992.ingest.us.sentry.io/4508055933681664',
-  NOTIFICATION_API_CLIENT_ID: 'wxar8aqip7uw4v77sn8w1pu372',
-};
-```
-
-**Nota**: Para producción, las variables se configuran dinámicamente desde `window.env` (ver `src/assets/env.sample.js`).
-
-### 1.3 Levantar el Servidor de Desarrollo
-
-#### Opción 1: Usando npm (Recomendado)
-
-```bash
-npm start
-```
-
-Este comando ejecuta `ng serve` que:
-- Compila la aplicación Angular
-- Inicia el servidor de desarrollo en `http://localhost:4200`
-- Habilita hot-reload (recarga automática al cambiar archivos)
-- Muestra errores de compilación en la consola
-
-#### Opción 2: Usando Angular CLI directamente
-
-```bash
-npx ng serve
-```
-
-O si tienes Angular CLI instalado globalmente:
-
-```bash
-ng serve
-```
-
-#### Opción 3: Levantar en segundo plano
-
-Si quieres que el servidor corra en segundo plano:
-
-```bash
-npm start &
-```
-
-Para detener el servidor en segundo plano:
-
-```bash
-pkill -f "ng serve"
-```
-
-### 1.4 Acceder a la Aplicación
-
-Una vez que el servidor esté corriendo, verás un mensaje similar a:
-
-```
-✔ Browser application bundle generation complete.
-
-Initial Chunk Files   | Names         |  Size
-main.js              | main          |  XXX kB
-
-** Angular Live Development Server is listening on localhost:4200, open your browser on http://localhost:4200/ **
-```
-
-Abre tu navegador en: **http://localhost:4200**
-
-### 1.5 Scripts Disponibles
-
-El proyecto incluye los siguientes scripts en `package.json`:
-
-| Script | Comando | Descripción |
-|--------|---------|-------------|
-| `start` | `npm start` | Inicia el servidor de desarrollo |
-| `build` | `npm run build` | Compila la aplicación para producción |
-| `watch` | `npm run watch` | Compila en modo watch (desarrollo) |
-| `test` | `npm test` | Ejecuta las pruebas unitarias |
-| `lint` | `npm run lint` | Ejecuta el linter de código |
-
-### 1.6 Solución de Problemas Comunes
-
-#### Error: Puerto 4200 ya está en uso
-
-Si el puerto 4200 está ocupado, puedes usar otro puerto:
-
-```bash
-ng serve --port 4201
-```
-
-#### Error: Módulos no encontrados
-
-Si encuentras errores de módulos no encontrados, reinstala las dependencias:
-
-```bash
-rm -rf node_modules package-lock.json
-npm install
-```
-
-#### Error: Permisos denegados
-
-Si tienes problemas de permisos en Linux/Mac:
-
-```bash
-sudo npm install
-```
-
-O mejor aún, configura npm para no usar sudo:
-
-```bash
-mkdir ~/.npm-global
-npm config set prefix '~/.npm-global'
-export PATH=~/.npm-global/bin:$PATH
-```
-
-#### Error: Versión de Node.js incompatible
-
-Verifica tu versión de Node.js:
-
-```bash
-node --version
-```
-
-Si es menor a 18.x, actualiza Node.js desde [nodejs.org](https://nodejs.org/)
-
-#### Error: "Callback URL mismatch" en Auth0
-
-Este error ocurre cuando la URL de callback no está permitida en Auth0. Hay varias soluciones:
-
-**Solución 1: Usar el puerto 4200 (Recomendado)**
-
-El puerto 4200 probablemente ya está configurado en Auth0. Detén el servidor actual y reinícialo en el puerto 4200:
-
-```bash
-# Detén el servidor actual (Ctrl + C)
-# Luego inicia en el puerto 4200
-ng serve --port 4200
-```
-
-O si el puerto está ocupado, libéralo primero:
-
-```bash
-# Encuentra el proceso usando el puerto 4200
-lsof -ti:4200
-# O en Linux:
-fuser -k 4200/tcp
-
-# Luego inicia el servidor
-ng serve --port 4200
-```
-
-**Solución 2: Agregar la URL en Auth0 Dashboard**
-
-1. Accede a https://manage.auth0.com/
-2. Ve a **Applications** → Selecciona tu aplicación (Client ID: `KOwgRAn7VY4kHAug7LwnIK0l3Ufek2og`)
-3. Ve a la sección **Allowed Callback URLs**
-4. Agrega la URL completa, por ejemplo:
-   - `http://localhost:39679`
-   - O mejor aún, usa un patrón: `http://localhost:*` (permite cualquier puerto en localhost)
-5. Click en **Save Changes**
-
-**Solución 3: Usar patrón wildcard para desarrollo local**
-
-En Auth0, agrega este patrón en **Allowed Callback URLs**:
-
-```
-http://localhost:*
-```
-
-Esto permitirá cualquier puerto en localhost, útil para desarrollo.
-
-**Nota**: El `redirect_uri` se configura automáticamente como `window.location.origin` en `app.config.ts`, por lo que siempre usará la URL actual del navegador.
-
-### 1.7 Estructura del Proyecto
-
-```
-crm-web-app/
-├── src/
-│   ├── app/
-│   │   ├── components/          # Componentes reutilizables
-│   │   ├── features/            # Features de la aplicación (lazy-loaded)
-│   │   ├── services/            # Servicios de negocio
-│   │   ├── guards/              # Guards de routing
-│   │   ├── interfaces/          # Interfaces TypeScript
-│   │   ├── utils/               # Utilidades, validators, pipes
-│   │   └── layout/              # Componentes de layout
-│   ├── assets/                  # Recursos estáticos
-│   ├── environments/            # Variables de entorno
-│   └── styles.css               # Estilos globales
-├── angular.json                  # Configuración de Angular
-├── package.json                  # Dependencias y scripts
-├── tsconfig.json                # Configuración de TypeScript
-├── tailwind.config.js           # Configuración de Tailwind CSS
-└── README.md                     # Esta documentación
-```
-
-### 1.8 Autenticación y Credenciales
-
-Esta aplicación utiliza **Auth0** para la autenticación de usuarios. No hay usuarios/contraseñas almacenados localmente.
-
-#### Configuración Actual de Auth0
-
-Según el archivo `environment.development.ts`, la aplicación está configurada con:
-
-- **Auth0 Domain**: `businessmarketfinders.us.auth0.com`
-- **Client ID**: `KOwgRAn7VY4kHAug7LwnIK0l3Ufek2og`
-- **Connection**: `Username-Password-Authentication`
-- **Backend API**: `https://crm-core-service.fly.dev/core-service`
-
-#### Credenciales de Desarrollo
-
-Para el equipo de desarrollo, las credenciales son:
-
-- **Email**: Tu correo electrónico (el que usas en el equipo)
-- **Contraseña temporal**: `32A8GyE9dWbY@`
-- **Importante**: Cambia esta contraseña al primer inicio de sesión
-
-#### Cómo Obtener Credenciales de Acceso
-
-Hay **3 formas** de obtener credenciales para acceder a la aplicación:
-
-##### Opción 1: Dashboard de Auth0 (Recomendado)
-
-1. Accede al **Dashboard de Auth0**:
-   - URL: https://manage.auth0.com/
-   - Inicia sesión con las credenciales de administrador de Auth0
-
-2. Navega a **User Management → Users**
-
-3. Aquí puedes:
-   - **Ver usuarios existentes**: Ver la lista de todos los usuarios registrados
-   - **Crear nuevo usuario**: Click en "Create User" y completa el formulario
-   - **Resetear contraseña**: Selecciona un usuario y usa "Reset Password"
-
-4. Los usuarios creados aquí podrán iniciar sesión en la aplicación con:
-   - **Email**: El email que configuraste
-   - **Contraseña**: La contraseña que estableciste (o la que Auth0 envió por email)
-
-##### Opción 2: Crear Usuario desde la Aplicación
-
-Si ya tienes acceso a la aplicación con un usuario administrador:
-
-1. Inicia sesión en la aplicación
-2. Navega a **Users** (requiere permiso `LIST_USER`)
-3. Click en **Create User** (requiere permiso `CREATE_USER`)
-4. Completa el formulario:
-   - First name
-   - Last name
-   - Email
-   - Password (mínimo 8 caracteres)
-   - Tenants (selecciona al menos uno)
-   - Roles (selecciona al menos uno)
-5. Click en **Save**
-
-**Nota**: Este método crea el usuario en el backend, pero también necesitas crear el usuario en Auth0 con las mismas credenciales para que pueda autenticarse.
-
-##### Opción 3: Credenciales del Equipo de Desarrollo
-
-Para miembros del equipo de desarrollo:
-
-- **Email**: Tu correo electrónico (el que usas en el equipo)
-- **Contraseña temporal**: `32A8GyE9dWbY@`
-- **Importante**: Debes cambiar esta contraseña al primer inicio de sesión
-
-##### Opción 4: Contactar al Administrador
-
-Si no tienes acceso al Dashboard de Auth0:
-
-1. Contacta al administrador del sistema o al equipo de desarrollo
-2. Solicita que te creen un usuario con:
-   - Tu email
-   - Contraseña temporal (que deberías cambiar al primer inicio de sesión)
-   - Los permisos/roles necesarios para tu trabajo
-
-#### Flujo de Autenticación
-
-1. Usuario accede a la aplicación → Redirige a Auth0 si no está autenticado
-2. Auth0 muestra formulario de login
-3. Usuario ingresa email y contraseña
-4. Auth0 valida credenciales
-5. Si es válido, Auth0 redirige de vuelta a la aplicación con un token JWT
-6. La aplicación decodifica el token y carga los permisos del usuario
-7. Usuario puede acceder a las funcionalidades según sus permisos
-
-#### Permisos y Roles
-
-Los usuarios tienen **permisos granulares** que vienen en el JWT token de Auth0. Los permisos determinan qué puede hacer cada usuario:
-
-- **"own" permissions**: Ver solo recursos propios (ej: `LIST_OWN_APPLICATIONS`)
-- **"all" permissions**: Ver todos los recursos (ej: `LIST_APPLICATIONS`)
-- **CRUD permissions**: CREATE, READ, UPDATE, DELETE por entidad
-- **Action permissions**: SEND_APPLICATION, TRANSFER_APPLICATION, etc.
-
-#### Solución de Problemas de Autenticación
-
-**Error: "Invalid credentials"**
-- Verifica que el email y contraseña sean correctos
-- Asegúrate de que el usuario existe en Auth0
-- Intenta resetear la contraseña desde Auth0
-
-**Error: "Access denied" o "Insufficient permissions"**
-- El usuario no tiene los permisos necesarios
-- Contacta al administrador para asignar los permisos correctos
-
-**Error: "Connection not found"**
-- Verifica que `AUTH0_CONNECTION` en `environment.ts` sea correcto
-- Debe ser `Username-Password-Authentication` o el nombre de tu connection en Auth0
-
-### 1.9 Convenciones y Estándares del Proyecto
-
-#### Convenciones de Código
-
-- **Idioma**: Todo el código y comentarios deben estar en **inglés**
-- **Clean Code**: Seguimos principios de Clean Code
-- **Conventional Commits**: Usamos Conventional Commits para los mensajes de commit
-
-#### Proceso de Desarrollo
-
-- **No commits directos a main**: Todo el código debe pasar por Pull Requests (PRs)
-- **Code Review**: Todos los PRs requieren revisión y aprobación antes de mergear
-- **Sugerencias**: Las sugerencias son bienvenidas, pero deben hacerse en el momento adecuado
-
-#### Patrones Arquitectónicos Utilizados
-
-El proyecto utiliza los siguientes patrones y principios:
-
-- **Result Pattern**: Para manejo de errores y resultados
-- **Clean Architecture**: Separación de capas y responsabilidades
-- **CQRS Pattern**: Separación de comandos y consultas
-- **SOLID Principles**: Principios de diseño orientado a objetos
-- **MongoDB Aggregations**: Para consultas complejas en la base de datos
-
-#### Formato de Commits (Conventional Commits)
-
-Los commits deben seguir este formato:
-
-```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
-```
-
-**Tipos comunes:**
-- `feat`: Nueva funcionalidad
-- `fix`: Corrección de bug
-- `docs`: Cambios en documentación
-- `style`: Cambios de formato (no afectan código)
-- `refactor`: Refactorización de código
-- `test`: Agregar o modificar tests
-- `chore`: Tareas de mantenimiento
-
-**Ejemplos:**
-```bash
-feat(applications): add ability to transfer applications between users
-
-docs: update installation instructions
-
-fix(auth): resolve callback URL mismatch error
-```
-
-#### Estructura de Pull Requests
-
-1. Crea una rama desde `main`:
-   ```bash
-   git checkout -b feature/nombre-de-la-feature
-   ```
-
-2. Realiza tus cambios y commits
-
-3. Push a tu rama:
-   ```bash
-   git push origin feature/nombre-de-la-feature
-   ```
-
-4. Crea un Pull Request en GitHub
-
-5. Espera la revisión y aprobación
-
-6. Una vez aprobado, se mergea a `main`
-
-### 1.10 Comandos Útiles
-
-#### Ver logs del servidor
-
-El servidor muestra logs en tiempo real en la terminal donde lo ejecutaste.
-
-#### Detener el servidor
-
-Presiona `Ctrl + C` en la terminal donde está corriendo el servidor.
-
-#### Limpiar caché y reconstruir
-
-```bash
-rm -rf .angular node_modules/.cache
-npm start
-```
-
-#### Verificar que todo está correcto
-
-```bash
-npm run lint        # Verifica el código
-npm test            # Ejecuta las pruebas
-```
-
----
-
-## 2. ANÁLISIS ARQUITECTÓNICO Y ESTRUCTURAL
-
-### 2.1 Arquitectura General
+### 1.1 Arquitectura General
 
 La aplicación CRM está construida con **Angular 19** siguiendo una arquitectura modular basada en features. Utiliza:
 
@@ -490,7 +31,7 @@ La aplicación CRM está construida con **Angular 19** siguiendo una arquitectur
 - **Notificaciones**: NotificationAPI SDK para notificaciones en tiempo real
 - **Monitoreo**: Sentry (configurado pero comentado en producción)
 
-### 2.2 Estructura de Carpetas
+### 1.2 Estructura de Carpetas
 
 ```
 src/app/
@@ -564,7 +105,7 @@ src/app/
     └── sidebar/
 ```
 
-### 2.3 Patrones Arquitectónicos
+### 1.3 Patrones Arquitectónicos
 
 #### 1.3.1 Feature-Based Architecture
 Cada feature es un módulo independiente con:
@@ -593,7 +134,7 @@ Uso extensivo de Angular Signals para:
 - Gestión de permisos (`UserPermissionsService`)
 - Estado de formularios y UI
 
-### 2.4 Módulos Principales y Responsabilidades
+### 1.4 Módulos Principales y Responsabilidades
 
 | Módulo | Responsabilidad | Permisos Requeridos |
 |--------|----------------|---------------------|
@@ -609,7 +150,7 @@ Uso extensivo de Angular Signals para:
 | **Users** | Gestión de usuarios del sistema | `LIST_USER` |
 | **Email** | Envío de emails a bancos | `SEND_EMAIL_BANK` |
 
-### 2.5 Dependencias entre Módulos
+### 1.5 Dependencias entre Módulos
 
 ```mermaid
 graph TD
@@ -630,7 +171,7 @@ graph TD
     J -->|gestiona| D
 ```
 
-### 2.6 Estructura de Routing y Navegación
+### 1.6 Estructura de Routing y Navegación
 
 El routing está centralizado en `app.routes.ts` con:
 - **Lazy Loading**: Cada feature se carga bajo demanda
@@ -645,7 +186,7 @@ El routing está centralizado en `app.routes.ts` con:
 5. Si no tiene permisos → redirige a `/applications`
 6. Si tiene permisos → carga el módulo lazy
 
-### 2.7 Guards, Interceptors y Middlewares
+### 1.7 Guards, Interceptors y Middlewares
 
 #### Guards
 - **AuthGuard** (Auth0): Verifica que el usuario esté autenticado
@@ -662,9 +203,9 @@ El routing está centralizado en `app.routes.ts` con:
 
 ---
 
-## 3. ANÁLISIS DE LÓGICA DE NEGOCIO POR MÓDULO
+## 2. ANÁLISIS DE LÓGICA DE NEGOCIO POR MÓDULO
 
-### 3.1 MÓDULO: APPLICATIONS (Aplicaciones)
+### 2.1 MÓDULO: APPLICATIONS (Aplicaciones)
 
 #### a) Propósito y Funcionalidad
 

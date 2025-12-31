@@ -1,5 +1,7 @@
 # CRM Web Application - Análisis Exhaustivo
 
+> **Nota**: Este es el README del **Frontend (Angular)**. Para documentación del **Backend (NestJS)**, ver [CRM Core API README](../crm-core-api/README.md).
+
 ## Índice
 1. [Análisis Arquitectónico y Estructural](#1-análisis-arquitectónico-y-estructural)
 2. [Análisis de Lógica de Negocio por Módulo](#2-análisis-de-lógica-de-negocio-por-módulo)
@@ -14,6 +16,7 @@
 11. [Análisis Profundo: Módulo Applications](#11-análisis-profundo-módulo-applications)
 12. [Flujos Completos de Procesos - Trazabilidad Detallada](#12-flujos-completos-de-procesos---trazabilidad-detallada)
 13. [Análisis de Arquitectura Completa](#13-análisis-de-arquitectura-completa)
+14. [Comunicación con Backend](#14-comunicación-con-backend)
 
 ---
 
@@ -2471,6 +2474,12 @@ Esta sección documenta los flujos completos de todos los procesos principales d
 
 ---
 
+**Nota**: El backend documenta flujos adicionales desde perspectiva backend. Ver [Backend README - Sección 11](../crm-core-api/README.md#11-flujos-completos-de-procesos---trazabilidad-detallada) para:
+- Publicar Commission (11.10)
+- Importar Leads desde CSV/Excel (11.11)
+- Campaign Genera Leads Automáticamente (11.12)
+- Realizar Llamada Telefónica (11.13)
+
 ### 12.1 FLUJO COMPLETO: Lead → Contact → Company → Application
 
 **Descripción**: Flujo end-to-end desde la importación de un lead hasta la creación de una aplicación de préstamo.
@@ -4350,6 +4359,138 @@ graph LR
    - **Actual**: README y .cursorrules
    - **Mejora**: Documentación técnica más detallada
    - **Cómo**: JSDoc, diagramas de arquitectura, guías de desarrollo
+
+---
+
+## 14. COMUNICACIÓN CON BACKEND
+
+### 14.1 Formato de Requests y Responses
+
+**Requests HTTP**:
+- **JSON**: Para operaciones CRUD normales (GET, POST, PUT, PATCH, DELETE)
+- **FormData**: Para requests con archivos (POST /v1/applications, POST /v1/contacts/:id/files, etc.)
+  - Estructura: `body` (JSON string) + `documents` (files array)
+  - Frontend envía FormData con esta estructura
+
+**Headers Requeridos**:
+- `Authorization`: JWT token (inyectado automáticamente por Auth0 interceptor)
+- `X-Tenant`: Tenant ID (inyectado por HttpService)
+- `Accept-Language`: Idioma preferido (inyectado por HttpService)
+- `Content-Type`: `application/json` (JSON) o `multipart/form-data` (FormData)
+
+**Responses**:
+- **Success**: Objeto JSON con datos
+- **Error**: Objeto JSON con `statusCode`, `message`, `error`
+- **Paginación**: `PaginatedResponse<T>` con `data`, `total`, `page`, `limit`
+
+### 14.2 Sincronización de Estados
+
+**Flujo de Sincronización**:
+1. Frontend actualiza estado local (Signals) después de operaciones exitosas
+2. Backend valida y persiste cambios
+3. Domain Events en backend pueden disparar side effects (ej: crear Commission)
+4. NotificationAPI envía notificaciones en tiempo real cuando hay cambios importantes
+5. Frontend recibe notificaciones y actualiza UI automáticamente
+
+**Ejemplo - Aceptar Oferta**:
+1. Frontend: `PUT /v1/applications/:id/notifications/:nId/accept/:offerId`
+2. Backend: Procesa aceptación, actualiza estados
+3. Backend: Dispara `ApplicationAcceptedEvent` (Domain Event)
+4. Backend: Event Handler crea Commission automáticamente (DRAFT)
+5. Backend: NotificationAPI envía notificación
+6. Frontend: Recibe notificación, actualiza Signals, muestra toast
+
+### 14.3 Validaciones Coordinadas
+
+**Frontend (UX)**:
+- Validaciones inmediatas para feedback al usuario
+- Validación de formularios antes de enviar
+- Validación de archivos (tamaño, tipo, duplicados)
+- Validación de estados (no permitir acciones inválidas)
+
+**Backend (Seguridad)**:
+- Validaciones de seguridad (nunca confiar solo en frontend)
+- Validaciones de reglas de negocio
+- Validaciones de permisos
+- Validaciones de estados y transiciones
+
+**Validaciones Redundantes** (por seguridad):
+- Monto: Frontend valida $1K-$20M, Backend también valida
+- Edad: Frontend valida 21-99, Backend también valida
+- Documentos: Frontend valida cantidad, Backend también valida
+- Estados: Frontend previene acciones inválidas, Backend rechaza si se intenta
+
+### 14.4 Manejo de Errores Coordinado
+
+**Frontend**:
+- `ErrorHandlerService` maneja errores centralizadamente
+- 404 → Redirige a ruta por defecto
+- 401/403 → Redirige a login o muestra mensaje
+- Otros errores → Muestra toast notification
+
+**Backend**:
+- `Exception Filters` manejan errores globalmente
+- `UnauthorizedExceptionFilter` para 401
+- `ForbiddenExceptionFilter` para 403
+- Errores de validación → 400 con mensaje descriptivo
+
+**Coordinación**:
+- Backend retorna errores estructurados
+- Frontend parsea y muestra mensajes amigables
+- Errores críticos se registran (Sentry, si está activo)
+
+### 14.5 Domain Events y Side Effects
+
+**Domain Events en Backend**:
+- Backend usa Domain Events para desacoplar side effects
+- Ejemplo: `ApplicationAcceptedEvent` → Crea Commission automáticamente
+- Frontend no necesita hacer requests adicionales
+
+**Flujo Típico**:
+1. Frontend hace request (ej: aceptar oferta)
+2. Backend procesa y dispara Domain Event
+3. Event Handler ejecuta side effect (ej: crear Commission)
+4. Backend retorna respuesta exitosa
+5. Frontend actualiza UI basado en respuesta
+6. NotificationAPI notifica cambios importantes
+
+### 14.6 Multi-tenancy
+
+**Backend**:
+- Soporta multi-tenancy
+- Al crear Application, se clona para todos los tenants
+- Cada tenant tiene su propia instancia de datos
+
+**Frontend**:
+- No necesita manejar multi-tenancy explícitamente
+- Solo envía `X-Tenant` header
+- Backend maneja clonación automáticamente
+
+### 14.7 Webhooks (Sistemas Externos)
+
+**Backend tiene endpoints de webhooks**:
+- `PUT /v1/applications/:id/send-to-banks`: Webhook para envío
+- `PUT /v1/webhooks/applications/notification/reject`: Webhook de rechazo
+- `POST /v1/webhooks/affiliate`: Webhook de affiliate
+- `GET /v1/campaigns/:campaign_id/send-next`: Webhook para enviar siguiente batch
+- `POST /v1/campaigns/notification`: Webhook de notificación de campaña
+
+**Frontend**:
+- No llama directamente a webhooks
+- Los webhooks son llamados por sistemas externos (bancos, scheduler, etc.)
+- Frontend puede recibir notificaciones cuando webhooks procesan datos
+
+### 14.8 Referencias al Backend README
+
+Para más detalles sobre:
+- **Arquitectura Backend**: Ver [Backend README - Sección 7: Análisis Completo de Arquitectura](../crm-core-api/README.md#7-análisis-completo-de-arquitectura)
+- **Domain Events**: Ver [Backend README - Sección 1.3: Event-Driven Architecture](../crm-core-api/README.md#13-patterns-arquitectónicos)
+- **Flujos Adicionales**: Ver [Backend README - Sección 11: Flujos Completos](../crm-core-api/README.md#11-flujos-completos-de-procesos---trazabilidad-detallada)
+  - Publicar Commission (11.10)
+  - Importar Leads desde CSV/Excel (11.11)
+  - Campaign Genera Leads Automáticamente (11.12)
+  - Realizar Llamada Telefónica (11.13)
+- **Análisis Profundo de Módulos**: Ver [Backend README - Sección 13: Análisis Profundo de Todos los Módulos](../crm-core-api/README.md#13-análisis-profundo-de-todos-los-módulos)
 
 ---
 

@@ -920,3 +920,75 @@ PENDING → SENT → OFFERED → ACCEPTED
 5. **Permisos**: Cada acción verifica permisos antes de ejecutarse
 6. **Error Handling**: Manejo centralizado con ErrorHandlerService, redirección en 404
 
+## Convenciones de Commits y Pull Requests
+
+### Conventional Commits
+
+Este proyecto sigue la especificación **Conventional Commits** para estructurar los mensajes de commit.
+
+#### Estructura
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+#### Tipos Principales
+- `feat`: Nueva funcionalidad (MINOR en SemVer)
+- `fix`: Corrección de bug (PATCH en SemVer)
+- `docs`: Cambios en documentación
+- `refactor`: Refactorización sin cambiar funcionalidad
+- `test`: Añadir o modificar tests
+- `build`: Cambios en build o dependencias
+- `chore`: Tareas de mantenimiento
+
+#### Scope (Opcional)
+Ejemplos: `applications`, `contacts`, `companies`, `banks`, `commissions`, `leads`, `auth`, `components`, `services`, `utils`
+
+#### Breaking Changes
+Indicar con `!` después del tipo/scope o en footer:
+```
+feat(applications)!: change status interface
+
+BREAKING CHANGE: Application status interface has been updated
+```
+
+#### Ejemplos
+- `feat(applications): add cancel offer button`
+- `fix(applications): correct offer status display`
+- `docs: add Conventional Commits guide to README`
+- `refactor(applications): simplify offer component logic`
+- `test(applications): add unit tests for offer component`
+
+#### Pull Requests
+- Título debe seguir formato Conventional Commits
+- Descripción debe incluir: Qué, Por qué, Cómo, Testing, Breaking Changes (si aplica)
+- Checklist: código sigue convenciones, tests pasando (si aplica), documentación actualizada, sin errores de linting, UI responsive y accesible (si aplica)
+
+### Reglas del Proyecto
+
+1. **Idioma**: Todo el código y comentarios en **inglés**
+2. **Clean Code**: Seguir principios de Clean Code (nombres descriptivos, funciones pequeñas, código autodocumentado, DRY)
+3. **Conventional Commits**: Usar para todos los commits (ver sección anterior)
+4. **No commits directos a main**: Todo debe pasar por Pull Requests con revisión y aprobación
+5. **Sugerencias**: Bienvenidas, pero en el momento adecuado (code reviews, planificación)
+
+### Patrones y Principios
+
+- **Clean Architecture**: Presentation, Business Logic, Data Access layers
+- **Feature-Based Architecture**: Organización por features/dominios
+- **SOLID Principles**: Aplicados en todo el código
+- **Reactive Programming**: Angular Signals y RxJS Observables
+- **Component-Based Architecture**: Componentes reutilizables
+
+### Flujo de Trabajo
+
+1. Crear branch desde `main`: `git checkout -b feat/feature-name`
+2. Desarrollar siguiendo Clean Code
+3. Commits con Conventional Commits
+4. Push y crear PR
+5. Esperar code review y aprobación
+6. Merge a `main`
+

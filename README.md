@@ -17,6 +17,7 @@
 12. [Flujos Completos de Procesos - Trazabilidad Detallada](#12-flujos-completos-de-procesos---trazabilidad-detallada)
 13. [Análisis de Arquitectura Completa](#13-análisis-de-arquitectura-completa)
 14. [Comunicación con Backend](#14-comunicación-con-backend)
+15. [Guía de Commits y Pull Requests](#15-guía-de-commits-y-pull-requests)
 
 ---
 
@@ -4491,6 +4492,293 @@ Para más detalles sobre:
   - Campaign Genera Leads Automáticamente (11.12)
   - Realizar Llamada Telefónica (11.13)
 - **Análisis Profundo de Módulos**: Ver [Backend README - Sección 13: Análisis Profundo de Todos los Módulos](../crm-core-api/README.md#13-análisis-profundo-de-todos-los-módulos)
+
+---
+
+## 15. GUÍA DE COMMITS Y PULL REQUESTS
+
+### 15.1 Conventional Commits
+
+Este proyecto sigue la especificación **Conventional Commits** para estructurar los mensajes de commit de manera consistente y automatizable.
+
+#### Estructura del Mensaje de Commit
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+#### Tipos de Commit
+
+| Tipo | Descripción | Ejemplo |
+|------|-------------|---------|
+| `feat` | Nueva funcionalidad (correlaciona con MINOR en SemVer) | `feat(applications): add cancel offer button` |
+| `fix` | Corrección de bug (correlaciona con PATCH en SemVer) | `fix(applications): correct offer status display` |
+| `docs` | Cambios en documentación | `docs: update README with commit guidelines` |
+| `style` | Cambios de formato (espacios, comas, etc.) que no afectan el código | `style: format component templates` |
+| `refactor` | Refactorización de código sin cambiar funcionalidad | `refactor(applications): simplify offer component logic` |
+| `perf` | Mejoras de rendimiento | `perf(applications): optimize application list rendering` |
+| `test` | Añadir o modificar tests | `test(applications): add unit tests for offer component` |
+| `build` | Cambios en sistema de build o dependencias | `build: update angular to 19.1.4` |
+| `ci` | Cambios en configuración de CI/CD | `ci: add github actions workflow` |
+| `chore` | Tareas de mantenimiento | `chore: update dependencies` |
+
+#### Scope (Opcional)
+
+El scope indica el módulo o área afectada. Ejemplos:
+- `applications`: Módulo de aplicaciones
+- `contacts`: Módulo de contactos
+- `companies`: Módulo de empresas
+- `banks`: Módulo de bancos
+- `commissions`: Módulo de comisiones
+- `leads`: Módulo de leads
+- `auth`: Autenticación/autorización
+- `components`: Componentes compartidos
+- `services`: Servicios compartidos
+- `utils`: Utilidades
+
+#### Breaking Changes
+
+Los cambios que rompen la compatibilidad deben indicarse:
+
+**Opción 1: En el footer**
+```
+feat(applications): change application status enum
+
+BREAKING CHANGE: Application status values have been updated
+```
+
+**Opción 2: Con `!` después del tipo/scope**
+```
+feat(applications)!: change application status enum
+```
+
+**Opción 3: Ambos**
+```
+feat(applications)!: change application status enum
+
+BREAKING CHANGE: Application status values have been updated
+```
+
+#### Ejemplos de Commits
+
+**Nueva funcionalidad:**
+```
+feat(applications): add cancel offer button
+
+- Add cancel button to offer component
+- Update offer status when canceled
+- Refresh notifications after cancellation
+```
+
+**Corrección de bug:**
+```
+fix(applications): correct offer status display
+
+The offer status was not updating correctly in the UI after
+cancellation. Now it correctly reflects the ON_HOLD status.
+```
+
+**Documentación:**
+```
+docs: add Conventional Commits guide to README
+```
+
+**Refactorización:**
+```
+refactor(applications): simplify offer component logic
+
+Extract offer status logic into computed signals for better
+reactivity and maintainability.
+```
+
+**Breaking change:**
+```
+feat(applications)!: change application status interface
+
+BREAKING CHANGE: Application status interface has been updated.
+Update any components that reference the old status values.
+
+Migration: Replace APPLICATION_STATUS.READY_TO_SEND with
+ApplicationStatus.READY_TO_SEND
+```
+
+**Con scope:**
+```
+fix(applications): prevent duplicate file uploads
+```
+
+**Sin scope:**
+```
+fix: resolve memory leak in signal subscriptions
+```
+
+### 15.2 Pull Requests
+
+#### Estructura del PR
+
+1. **Título**: Debe seguir el formato de Conventional Commits
+   - Ejemplo: `feat(applications): add cancel offer button`
+
+2. **Descripción**:
+   - **Qué**: Descripción clara de los cambios
+   - **Por qué**: Razón del cambio (problema que resuelve)
+   - **Cómo**: Resumen de la implementación
+   - **Testing**: Cómo se probó
+   - **Breaking Changes**: Si aplica, documentar claramente
+
+3. **Ejemplo de Descripción de PR**:
+   ```markdown
+   ## Descripción
+   
+   Agrega funcionalidad para cancelar ofertas desde la UI.
+   
+   ## Problema
+   
+   Los usuarios no podían cancelar ofertas aceptadas desde la interfaz,
+   teniendo que usar la API directamente.
+   
+   ## Solución
+   
+   - Agregado botón "Cancel" en el componente de ofertas
+   - Implementada lógica para actualizar estado local
+   - Actualización automática de signals después de cancelación
+   
+   ## Testing
+   
+   - ✅ Verificado manualmente en UI
+   - ✅ Estado se actualiza correctamente
+   - ✅ Notificaciones se refrescan automáticamente
+   
+   ## Breaking Changes
+   
+   Ninguno
+   ```
+
+#### Checklist para PRs
+
+- [ ] Código sigue las convenciones del proyecto
+- [ ] Tests agregados/actualizados y pasando (si aplica)
+- [ ] Documentación actualizada (si aplica)
+- [ ] Sin errores de linting
+- [ ] Commits siguen Conventional Commits
+- [ ] PR tiene descripción clara
+- [ ] Breaking changes documentados (si aplica)
+- [ ] UI responsive y accesible (si aplica)
+
+### 15.3 Buenas Prácticas
+
+1. **Commits Atómicos**: Un commit debe representar un cambio lógico completo
+   - ✅ Bueno: `fix(applications): correct offer status display`
+   - ❌ Malo: `fix: various UI fixes`
+
+2. **Mensajes Descriptivos**: El mensaje debe ser claro y específico
+   - ✅ Bueno: `feat(applications): add validation for loan amount input`
+   - ❌ Malo: `feat: add validation`
+
+3. **Usar Imperativo**: Los mensajes deben estar en modo imperativo
+   - ✅ Bueno: `fix: correct status display`
+   - ❌ Malo: `fix: corrected status display` o `fix: correcting status display`
+
+4. **Body para Cambios Complejos**: Usar el body para explicar el "qué" y "por qué"
+   ```
+   fix(applications): correct offer status display
+   
+   The offer status was not updating correctly in the UI after
+   cancellation. This caused confusion as users saw outdated information.
+   
+   The fix updates the local signals immediately after the API call
+   and refreshes the notifications list.
+   ```
+
+5. **Referencias**: Incluir referencias a issues/tickets si aplica
+   ```
+   fix(applications): correct offer status display
+   
+   Fixes #123
+   ```
+
+### 15.4 Automatización
+
+Los mensajes de commit en formato Conventional Commits permiten:
+- **Generación automática de CHANGELOG**
+- **Versionado semántico automático** (SemVer)
+- **Triggering de builds y publicaciones**
+- **Filtrado de commits por tipo**
+
+### 15.5 Reglas del Proyecto
+
+#### Reglas de Desarrollo
+
+1. **Idioma del Código**: Todo el código y comentarios se realizan en **inglés**
+   - ✅ Variables, funciones, clases en inglés
+   - ✅ Comentarios en inglés
+   - ✅ Mensajes de commit en inglés
+   - ✅ Documentación de código en inglés
+
+2. **Clean Code**: Seguimos principios de **Clean Code**
+   - Nombres descriptivos y significativos
+   - Funciones pequeñas y con una sola responsabilidad
+   - Código autodocumentado
+   - Evitar código duplicado (DRY)
+   - Mantener funciones y clases pequeñas
+
+3. **Conventional Commits**: Usamos **Conventional Commits** para todos los commits
+   - Ver sección [15.1 Conventional Commits](#151-conventional-commits) para detalles
+
+4. **Pull Requests Obligatorios**: **No se hacen commits directos a `main`**
+   - Todo el código debe pasar por Pull Requests
+   - Los PRs requieren revisión y aprobación antes de merge
+   - Crear branch desde `main` para cada feature/fix
+   - El PR debe seguir Conventional Commits en el título
+
+5. **Sugerencias**: Las sugerencias son bienvenidas, pero deben hacerse en el momento adecuado
+   - Durante code reviews
+   - En reuniones de planificación
+   - A través de canales de comunicación establecidos
+
+#### Patrones y Principios Aplicados
+
+Este proyecto implementa los siguientes patrones y principios:
+
+- **Clean Architecture**: Separación en capas (Presentation, Business Logic, Data Access)
+- **Feature-Based Architecture**: Organización por features/dominios de negocio
+- **SOLID Principles**: Principios de diseño orientado a objetos
+  - Single Responsibility Principle
+  - Open/Closed Principle
+  - Liskov Substitution Principle
+  - Interface Segregation Principle
+  - Dependency Inversion Principle
+- **Reactive Programming**: Uso de Angular Signals y RxJS Observables
+- **Component-Based Architecture**: Componentes reutilizables y composables
+
+#### Flujo de Trabajo
+
+1. **Crear Branch**: Desde `main`, crear branch descriptivo
+   ```bash
+   git checkout -b feat/applications-cancel-offer-button
+   # o
+   git checkout -b fix/applications-status-display
+   ```
+
+2. **Desarrollar**: Escribir código siguiendo Clean Code y convenciones
+
+3. **Commits**: Hacer commits siguiendo Conventional Commits
+   ```bash
+   git commit -m "feat(applications): add cancel offer button"
+   ```
+
+4. **Push y PR**: Push a origin y crear Pull Request
+   ```bash
+   git push origin feat/applications-cancel-offer-button
+   ```
+
+5. **Code Review**: Esperar revisión y aprobación
+
+6. **Merge**: Una vez aprobado, el PR se mergea a `main`
 
 ---
 
